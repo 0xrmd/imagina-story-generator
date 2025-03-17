@@ -94,7 +94,7 @@ const OnboardingForm: React.FC<OnboardingFormProps> = ({ className }) => {
                     <Sparkles className="w-10 h-10 text-primary relative z-10" />
                   </div>
                 </div>
-                <h1 className="text-2xl font-medium tracking-tight">Welcome to StoryWonder</h1>
+                <h1 className="text-2xl font-medium tracking-tight">Welcome to StoryLand</h1>
                 <p className="text-muted-foreground">Let's create a magical story for your child</p>
               </div>
               
