@@ -14,7 +14,7 @@ const Header: React.FC = () => {
           <div className="absolute inset-0 bg-primary/20 rounded-full blur-md animate-pulse"></div>
           <BookOpen className="w-8 h-8 text-primary relative z-10" />
         </div>
-        <span className="font-medium text-xl tracking-tight">StoryWonder</span>
+        <span className="font-medium text-xl tracking-tight">Storyland</span>
       </Link>
       
       <div className="flex items-center space-x-1">

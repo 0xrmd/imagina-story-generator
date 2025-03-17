@@ -40,7 +40,7 @@ const Index = () => {
       </main>
       
       <footer className="w-full max-w-4xl mx-auto py-6 text-center text-sm text-muted-foreground">
-        <p>StoryWonder • Crafting magical stories for children</p>
+        <p>Storyland • Crafting magical stories for children</p>
       </footer>
     </div>
   );
