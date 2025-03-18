@@ -1,24 +1,23 @@
-
 import React from 'react';
 import OnboardingForm from '@/components/OnboardingForm';
 import Header from '@/components/Header';
 import AnimatedTransition from '@/components/AnimatedTransition';
 import { Star, Rabbit, ToyBrick, Cloud, Rainbow } from 'lucide-react';
 
-const Index = () => {
+const Home = () => {
   return (
-    <div className="min-h-screen flex flex-col p-4 md:p-6 bg-gradient-to-b from-blue-50 to-purple-50">
+    <div className="min-h-screen flex flex-col p-4 md:p-6 bg-gradient-to-b from-blue-50 to-purple-50 dark:from-slate-900 dark:to-slate-800">
       <Header />
 
       <main className="flex-1 w-full max-w-4xl mx-auto flex flex-col items-center justify-center py-10 relative">
         {/* Decorative elements */}
-        <div className="absolute -top-12 -right-8 w-20 h-20 text-blue-300 opacity-70">
+        <div className="absolute -top-12 -right-8 w-20 h-20 text-blue-300 dark:text-blue-500 opacity-70">
           <Cloud className="w-full h-full animate-floating" style={{ animationDelay: '0.7s' }} />
         </div>
-        <div className="absolute top-1/3 -left-12 w-16 h-16 text-green-300 opacity-70">
+        <div className="absolute top-1/3 -left-12 w-16 h-16 text-green-300 dark:text-green-500 opacity-70">
           <ToyBrick className="w-full h-full animate-floating" style={{ animationDelay: '1.5s' }} />
         </div>
-        <div className="absolute bottom-1/4 -right-10 w-16 h-16 text-purple-300 opacity-70">
+        <div className="absolute bottom-1/4 -right-10 w-16 h-16 text-purple-300 dark:text-purple-500 opacity-70">
           <Rainbow className="w-full h-full animate-floating" style={{ animationDelay: '1.2s' }} />
         </div>
 
@@ -37,13 +36,13 @@ const Index = () => {
 
         <div className="relative w-full">
           {/* Decorative elements */}
-          <div className="absolute -top-12 -left-12 w-24 h-24 text-yellow-300 opacity-70">
+          <div className="absolute -top-12 -left-12 w-24 h-24 text-yellow-300 dark:text-yellow-500 opacity-70">
             <Star className="w-full h-full animate-floating" />
           </div>
-          <div className="absolute -bottom-8 -right-8 w-16 h-16 text-pink-300 opacity-70">
+          <div className="absolute -bottom-8 -right-8 w-16 h-16 text-pink-300 dark:text-pink-500 opacity-70">
             <Star className="w-full h-full animate-floating" style={{ animationDelay: '1s' }} />
           </div>
-          <div className="absolute -bottom-16 left-1/4 w-14 h-14 text-blue-300 opacity-70">
+          <div className="absolute -bottom-16 left-1/4 w-14 h-14 text-blue-300 dark:text-blue-500 opacity-70">
             <Rabbit className="w-full h-full animate-floating" style={{ animationDelay: '0.5s' }} />
           </div>
 
@@ -62,4 +61,4 @@ const Index = () => {
   );
 };
 
-export default Index;
+export default Home;

@@ -2,7 +2,7 @@ import React, { useRef, useEffect, useState } from 'react';
 import { cn } from '@/lib/utils';
 import AnimatedTransition from './AnimatedTransition';
 import { Button } from '@/components/ui/button';
-import { ThumbsUp, ThumbsDown, Image, Lightbulb, CheckCircle2, Volume2, VolumeX } from 'lucide-react';
+import { ThumbsUp, ThumbsDown, Image, Lightbulb, CheckCircle2, Volume2, VolumeX, ArrowLeft, Bookmark, Share2, RefreshCw } from 'lucide-react';
 import ReadTogether from './ReadTogether';
 
 interface AutismSupportTools {
@@ -14,15 +14,91 @@ interface AutismSupportTools {
 interface StoryDisplayProps {
   title: string;
   content: string;
+  childName: string;
+  childAge: number;
+  storyType: string;
+  interests: string;
   isLoading?: boolean;
   className?: string;
   supportTools?: AutismSupportTools;
   isAutismFriendly?: boolean;
+  onNewStory: () => void;
+  onSave: () => void;
+  onShare: () => void;
 }
+
+const StoryDetailsSidebar: React.FC<{
+  childName: string;
+  age: number;
+  storyType: string;
+  interests: string;
+  onNewStory: () => void;
+  onSave: () => void;
+  onShare: () => void;
+  className?: string;
+  isLoading?: boolean;
+}> = ({ childName, age, storyType, interests, onNewStory, onSave, onShare, className, isLoading }) => {
+  return (
+    <div className={cn(
+      "rounded-3xl bg-card p-6 space-y-6 border shadow-sm",
+      className
+    )}>
+      <div className="space-y-4">
+        <div className="space-y-1">
+          <h3 className="text-lg font-medium">Story for</h3>
+          <p className="text-muted-foreground">{childName}, {age} years</p>
+        </div>
+
+        <div className="space-y-1">
+          <h3 className="text-lg font-medium">Story type</h3>
+          <p className="text-muted-foreground">{storyType}</p>
+        </div>
+
+        <div className="space-y-1">
+          <h3 className="text-lg font-medium">Interests</h3>
+          <p className="text-muted-foreground">{interests}</p>
+        </div>
+      </div>
+
+      <div className="space-y-3">
+        <Button
+          className="w-full bg-primary text-primary-foreground hover:bg-primary/90"
+          onClick={onNewStory}
+          disabled={isLoading}
+        >
+          <RefreshCw className={cn("w-4 h-4 mr-2", isLoading && "animate-spin")} />
+          {isLoading ? "Generating..." : "New Story"}
+        </Button>
+        <Button
+          variant="outline"
+          className="w-full"
+          onClick={onSave}
+          disabled={isLoading}
+        >
+          <Bookmark className="w-4 h-4 mr-2" />
+          Save
+        </Button>
+        <Button
+          variant="outline"
+          className="w-full"
+          onClick={onShare}
+          disabled={isLoading}
+        >
+          <Share2 className="w-4 h-4 mr-2" />
+          Share
+        </Button>
+      </div>
+    </div>
+  );
+};
 
 const StoryDisplay: React.FC<StoryDisplayProps> = ({
   title,
   content,
+  childName,
+  childAge,
+  storyType,
+  interests,
   isLoading = false,
   className,
   supportTools = {
@@ -31,6 +107,9 @@ const StoryDisplay: React.FC<StoryDisplayProps> = ({
     inferencing: false
   },
   isAutismFriendly = false,
+  onNewStory,
+  onSave,
+  onShare,
 }) => {
   const contentRef = useRef<HTMLDivElement>(null);
   const [completedEvents, setCompletedEvents] = useState<number[]>([]);
@@ -48,16 +127,13 @@ const StoryDisplay: React.FC<StoryDisplayProps> = ({
 
   const handleParagraphFinish = () => {
     if (activeReadingIndex !== null && activeReadingIndex < paragraphs.length - 1) {
-      // Move to the next paragraph
       setActiveReadingIndex(activeReadingIndex + 1);
     } else {
-      // Stop reading when we reach the end
       setActiveReadingIndex(null);
     }
   };
 
   const generateThinkingPrompt = (paragraph: string) => {
-    // Generate relevant thinking prompts based on content
     if (paragraph.match(/feel|emotion|happy|sad|angry/i)) {
       return "How do you think the character is feeling? Why?";
     }
@@ -74,7 +150,6 @@ const StoryDisplay: React.FC<StoryDisplayProps> = ({
   };
 
   const generateVisualizationPrompt = (paragraph: string) => {
-    // Extract key visual elements from the paragraph
     const visualElements = paragraph.match(/\b(saw|looked|appeared|seemed|bright|dark|color|big|small|tall|short)\b/gi);
     if (visualElements?.length) {
       return `Can you picture: ${visualElements.join(', ')}?`;
@@ -83,51 +158,35 @@ const StoryDisplay: React.FC<StoryDisplayProps> = ({
   };
 
   const renderParagraphWithSupport = (paragraph: string, index: number) => {
-    if (!isAutismFriendly) {
-      const isReading = activeReadingIndex === index;
-      return (
-        <div key={index} className="space-y-3">
-          <p>{paragraph}</p>
-          <div className="flex gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              className="gap-2"
-              onClick={() => {
-                if (isReading) {
-                  setActiveReadingIndex(null);
-                } else {
-                  setActiveReadingIndex(index);
-                }
-              }}
-            >
-              {isReading ? <VolumeX className="w-4 h-4" /> : <Volume2 className="w-4 h-4" />}
-              {isReading ? "Stop Reading" : "Read Aloud"}
-            </Button>
-          </div>
-          {isReading && (
-            <ReadTogether
-              content={paragraph}
-              isVisible={true}
-              onFinish={handleParagraphFinish}
-            />
-          )}
-        </div>
-      );
-    }
-
+    const isReading = activeReadingIndex === index;
     const isCompleted = completedEvents.includes(index);
     const isShowingImage = showingImage === index;
     const isShowingThought = showingThought === index;
 
     return (
-      <div key={index} className="space-y-3 p-4 rounded-lg border border-secondary/20 bg-background/50">
+      <div className="space-y-4 p-4 rounded-lg bg-muted/50 border">
         <div className="flex items-start gap-2">
-          <span className="font-medium text-primary min-w-[24px]">{index + 1}.</span>
-          <p>{paragraph}</p>
+          <span className="font-medium min-w-[24px]">{index + 1}.</span>
+          <p className="text-foreground">{paragraph}</p>
         </div>
 
-        <div className="flex flex-wrap gap-3 pt-2">
+        <div className="flex flex-wrap gap-2">
+          <Button
+            variant={isReading ? "secondary" : "outline"}
+            size="sm"
+            className="gap-2"
+            onClick={() => {
+              if (isReading) {
+                setActiveReadingIndex(null);
+              } else {
+                setActiveReadingIndex(index);
+              }
+            }}
+          >
+            {isReading ? <VolumeX className="w-4 h-4" /> : <Volume2 className="w-4 h-4" />}
+            {isReading ? "Stop Reading" : "Read Aloud"}
+          </Button>
+
           {supportTools.sequencing && (
             <Button
               variant={isCompleted ? "secondary" : "outline"}
@@ -166,22 +225,30 @@ const StoryDisplay: React.FC<StoryDisplayProps> = ({
               onClick={() => setShowingThought(isShowingThought ? null : index)}
             >
               <Lightbulb className="w-4 h-4" />
-              Think About It
+              Think About
             </Button>
           )}
         </div>
 
+        {isReading && (
+          <ReadTogether
+            content={paragraph}
+            isVisible={true}
+            onFinish={handleParagraphFinish}
+          />
+        )}
+
         {isShowingImage && (
           <AnimatedTransition>
-            <div className="mt-2 p-3 rounded-lg bg-secondary/10 space-y-2">
-              <p className="font-medium text-sm">🎨 Visualization Helper:</p>
+            <div className="p-4 rounded-lg bg-muted space-y-2">
+              <p className="font-medium text-sm">👀 Picture Helper:</p>
               <p className="text-sm text-muted-foreground">{generateVisualizationPrompt(paragraph)}</p>
               <div className="flex gap-2 mt-2">
-                <Button variant="ghost" size="sm" className="gap-1">
+                <Button variant="outline" size="sm" className="gap-1">
                   <ThumbsUp className="w-4 h-4" />
                   I can see it!
                 </Button>
-                <Button variant="ghost" size="sm" className="gap-1">
+                <Button variant="outline" size="sm" className="gap-1">
                   <ThumbsDown className="w-4 h-4" />
                   Need help
                 </Button>
@@ -192,15 +259,15 @@ const StoryDisplay: React.FC<StoryDisplayProps> = ({
 
         {isShowingThought && (
           <AnimatedTransition>
-            <div className="mt-2 p-3 rounded-lg bg-secondary/10 space-y-2">
+            <div className="p-4 rounded-lg bg-muted space-y-2">
               <p className="font-medium text-sm">💭 Thinking Helper:</p>
               <p className="text-sm text-muted-foreground">{generateThinkingPrompt(paragraph)}</p>
               <div className="flex gap-2 mt-2">
-                <Button variant="ghost" size="sm" className="gap-1">
+                <Button variant="outline" size="sm" className="gap-1">
                   <ThumbsUp className="w-4 h-4" />
                   I have an idea!
                 </Button>
-                <Button variant="ghost" size="sm" className="gap-1">
+                <Button variant="outline" size="sm" className="gap-1">
                   <ThumbsDown className="w-4 h-4" />
                   Need help
                 </Button>
@@ -213,36 +280,49 @@ const StoryDisplay: React.FC<StoryDisplayProps> = ({
   };
 
   return (
-    <div className={cn("glass-card rounded-2xl p-6 overflow-hidden", className)}>
-      {isLoading ? (
-        <div className="space-y-6">
-          <div className="h-8 w-3/4 bg-muted rounded animate-pulse" />
-          <div className="space-y-4">
-            <div className="h-4 bg-muted rounded animate-pulse" />
-            <div className="h-4 bg-muted rounded animate-pulse" />
-            <div className="h-4 w-5/6 bg-muted rounded animate-pulse" />
-            <div className="h-4 bg-muted rounded animate-pulse" />
-            <div className="h-4 w-4/6 bg-muted rounded animate-pulse" />
+    <div className="flex flex-col lg:flex-row gap-6">
+      {/* Main content */}
+      <div className="flex-1 order-2 lg:order-1">
+        <div className="relative overflow-hidden rounded-3xl bg-card border shadow-sm">
+          <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-primary/30 to-transparent" />
+          <div className="p-4 lg:p-8 space-y-8" ref={contentRef}>
+            {isLoading ? (
+              <div className="flex flex-col items-center justify-center min-h-[400px] space-y-4">
+                <div className="w-12 h-12 border-4 border-primary/20 border-t-primary rounded-full animate-spin" />
+                <p className="text-lg font-medium text-muted-foreground">Creating your magical story...</p>
+                <p className="text-sm text-muted-foreground text-center max-w-sm">
+                  Our story wizard is crafting a unique adventure just for you. This might take a moment.
+                </p>
+              </div>
+            ) : (
+              <>
+                <h1 className="text-3xl lg:text-4xl font-bold tracking-tight">{title}</h1>
+                <div className="space-y-6">
+                  {paragraphs.map((paragraph, index) => (
+                    <div key={index}>
+                      {renderParagraphWithSupport(paragraph, index)}
+                    </div>
+                  ))}
+                </div>
+              </>
+            )}
           </div>
         </div>
-      ) : (
-        <AnimatedTransition>
-          <div
-            ref={contentRef}
-            className="space-y-6 max-h-[60vh] overflow-y-auto pr-2"
-          >
-            <h2 className="text-2xl font-medium tracking-tight text-center">{title}</h2>
+      </div>
 
-            <div className="story-text space-y-6">
-              {paragraphs.map((paragraph, index) => (
-                <AnimatedTransition key={index} delay={index * 100}>
-                  {renderParagraphWithSupport(paragraph, index)}
-                </AnimatedTransition>
-              ))}
-            </div>
-          </div>
-        </AnimatedTransition>
-      )}
+      {/* Sidebar */}
+      <div className="w-full lg:w-64 order-1 lg:order-2">
+        <StoryDetailsSidebar
+          childName={childName}
+          age={childAge}
+          storyType={storyType}
+          interests={interests}
+          onNewStory={onNewStory}
+          onSave={onSave}
+          onShare={onShare}
+          isLoading={isLoading}
+        />
+      </div>
     </div>
   );
 };

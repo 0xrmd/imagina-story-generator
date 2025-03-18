@@ -346,7 +346,7 @@ const StoryOptions: React.FC<StoryOptionsProps> = ({
       await navigator.clipboard.writeText(textToShare);
       toast.success("Story copied to clipboard");
     } catch (error) {
-      // Simple fallback for older browsers
+      //  Simple fallback for older browsers
       const textArea = document.createElement("textarea");
       textArea.value = textToShare;
       document.body.appendChild(textArea);
