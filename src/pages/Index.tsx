@@ -9,7 +9,7 @@ const Index = () => {
   return (
     <div className="min-h-screen flex flex-col p-4 md:p-6 bg-gradient-to-b from-blue-50 to-purple-50">
       <Header />
-      
+
       <main className="flex-1 w-full max-w-4xl mx-auto flex flex-col items-center justify-center py-10 relative">
         {/* Decorative elements */}
         <div className="absolute -top-12 -right-8 w-20 h-20 text-blue-300 opacity-70">
@@ -21,7 +21,7 @@ const Index = () => {
         <div className="absolute bottom-1/4 -right-10 w-16 h-16 text-purple-300 opacity-70">
           <Rainbow className="w-full h-full animate-floating" style={{ animationDelay: '1.2s' }} />
         </div>
-        
+
         <AnimatedTransition delay={100} className="text-center mb-8">
           <h1 className="text-4xl font-bold tracking-tight mb-3 text-transparent bg-clip-text bg-gradient-to-r from-blue-500 to-purple-500">
             Create magical stories
@@ -34,7 +34,7 @@ const Index = () => {
             crafted with love for bedtime, learning, and fun.
           </p>
         </AnimatedTransition>
-        
+
         <div className="relative w-full">
           {/* Decorative elements */}
           <div className="absolute -top-12 -left-12 w-24 h-24 text-yellow-300 opacity-70">
@@ -46,19 +46,17 @@ const Index = () => {
           <div className="absolute -bottom-16 left-1/4 w-14 h-14 text-blue-300 opacity-70">
             <Rabbit className="w-full h-full animate-floating" style={{ animationDelay: '0.5s' }} />
           </div>
-          
+
           <AnimatedTransition delay={300}>
             <OnboardingForm />
           </AnimatedTransition>
         </div>
       </main>
-      
+
       <footer className="w-full max-w-4xl mx-auto py-6 text-center text-sm text-muted-foreground">
-        <p className="flex items-center justify-center gap-2">
-          <Star className="w-4 h-4 text-yellow-400" />
-          StoryLand • Crafting magical stories for children
-          <Star className="w-4 h-4 text-yellow-400" />
-        </p>
+        <Star className="w-4 h-4 text-yellow-400" />
+        <p> StoryLand • Crafting magical stories for children © {new Date().getFullYear()} </p>
+        <p> Made with ❤️ by <a href="https://github.com/medrami-dev" target="_blank" rel="noopener noreferrer" style={{ fontWeight: 'bold' }}>Mohamed Rami</a> </p>
       </footer>
     </div>
   );

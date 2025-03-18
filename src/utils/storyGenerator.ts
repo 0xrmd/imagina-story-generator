@@ -1,6 +1,7 @@
-
 // This is a simple mock implementation of a story generator
 // In a real application, this would connect to an API like OpenAI or another LLM
+
+import { aiService } from '@/services/aiService';
 
 interface StoryData {
   childName: string;
@@ -8,11 +9,21 @@ interface StoryData {
   interests: string;
   storyType: string;
   storyLength: string;
+  isAutismFriendly?: boolean;  // New option for autism-friendly mode
 }
 
 interface GeneratedStory {
   title: string;
   content: string;
+}
+
+interface StoryGenerationParams {
+  childName: string;
+  childAge: number;
+  interests: string;
+  storyType: string;
+  storyLength: string;
+  isAutismFriendly: boolean;
 }
 
 // Helper function to get random item from array
@@ -85,25 +96,23 @@ const storyBeginnings = [
 // Expanded story middles with creative scenarios
 const storyMiddles = {
   short: [
-    "{{name}} discovered a mysterious glowing object related to {{interests}}. Upon closer inspection, it revealed a hidden message!",
-    "While exploring the backyard, {{name}} met a talking butterfly who knew everything about {{interests}} and offered to share its knowledge.",
-    "A strange package arrived at {{name}}'s doorstep. Inside was a map with clues all related to {{interests}}!",
-    "{{name}} found a secret door behind the bookshelf that led to a magical world where {{interests}} came to life in extraordinary ways.",
+    "As {{name}} explored further, a magical door appeared. Behind it was a world where {{interests}} came together in the most extraordinary way.",
+    "A wise old owl appeared, its eyes twinkling with knowledge about {{interests}}. It had a special mission just for {{name}}.",
+    "Deep in the enchanted forest, {{name}} discovered a hidden clearing where {{interests}} transformed into pure magic.",
+    "{{name}} found an ancient book whose pages revealed secrets about {{interests}} that no one had ever known before.",
   ],
   medium: [
-    "{{name}} discovered a tiny door at the base of an old tree. Behind it was a miniature world where tiny creatures were creating amazing things related to {{interests}}. They invited {{name}} to join their crafting session.",
-    "A shooting star fell right into {{name}}'s backyard! But it wasn't a star at all - it was a visitor from another planet who needed help learning about {{interests}} before returning home.",
-    "While reading a book about {{interests}}, {{name}} noticed the pictures beginning to move. Suddenly, the book pulled {{name}} inside its pages for an interactive adventure!",
-    "{{name}}'s grandmother revealed a family secret: their family had special powers related to {{interests}}. Now it was time for {{name}} to learn how to use these abilities responsibly.",
-    "At the local museum, the exhibits about {{interests}} mysteriously came to life at night. The security guard invited {{name}} to help keep this special magic a secret while learning from the living exhibits.",
+    "In a clearing bathed in moonlight, {{name}} discovered a circle of friendly creatures. Each one represented a different aspect of {{interests}}, and together they shared ancient wisdom that had been hidden for centuries.",
+    "A mysterious mentor appeared in {{name}}'s dreams, teaching wonderful secrets about {{interests}}. Each night brought new discoveries and magical revelations.",
+    "{{name}} stumbled upon an enchanted workshop where master craftsmen were creating wonders related to {{interests}}. They saw great potential in {{name}} and offered to share their knowledge.",
+    "During a magical sunset, {{name}} found that {{interests}} had come alive in ways never imagined. The air sparkled with possibility as new adventures unfolded.",
   ],
   long: [
-    "{{name}} received an invitation to a special school where students learned all about {{interests}} in magical ways. After passing the entrance test by showing knowledge of {{interests}}, {{name}} was introduced to classmates who would become lifelong friends. Together, they embarked on their first class project that involved solving real-world problems using their knowledge.",
-    "A peculiar old map found in the attic led {{name}} to a hidden cave near town. Inside the cave was an ancient society of explorers who had been studying {{interests}} for centuries. They were impressed by {{name}}'s enthusiasm and invited them to join their next expedition. During training, {{name}} learned skills that even adults found challenging.",
-    "When {{name}}'s family moved to a new neighborhood, the house they moved into seemed ordinary at first. But soon {{name}} discovered that the house responded to thoughts about {{interests}}. Rooms would transform, objects would appear, and sometimes even helpful creatures would materialize to teach {{name}} more. As {{name}} mastered this strange connection, the house revealed its true purpose.",
-    "During a family camping trip, {{name}} wandered off the trail and encountered a family of magical forest creatures who needed help. Their forest was in danger, and they believed {{name}}'s knowledge of {{interests}} might save their home. After meeting the forest council, {{name}} was granted temporary woodland magic to help solve the mystery of the dying trees. With new forest friends and growing confidence, {{name}} discovered that the problem was more complicated than anyone realized.",
-    "On a rainy afternoon, {{name}} built a fort out of blankets and pillows, but this was no ordinary fort. Once inside, {{name}} realized it had become a portal to different worlds, each one connected to different aspects of {{interests}}. In one world, {{name}} met a wise teacher who explained that these worlds were in danger of disappearing if children stopped being curious about {{interests}}. {{name}} accepted the mission to become an ambassador between worlds, learning deeper secrets with each journey.",
-  ],
+    "Deep in an ancient library, {{name}} discovered a series of magical books. Each one revealed deeper mysteries about {{interests}}, leading to a grand quest that would test everything {{name}} had learned.",
+    "A group of mystical beings chose {{name}} as their special student. They revealed that {{interests}} held powers beyond imagination, and {{name}} was destined to become their guardian.",
+    "Through a series of magical events, {{name}} learned that {{interests}} were actually connected to an ancient power. Each discovery led to new adventures and greater understanding.",
+    "{{name}} received an invitation to a secret school where {{interests}} were taught in ways that seemed impossible. Each lesson brought new wonders and opened doors to magical realms.",
+  ]
 };
 
 // Expanded and more varied story endings
@@ -196,17 +205,62 @@ const challengesByType = {
 
 // Fill template with data
 const fillTemplate = (template: string, data: StoryData, extras: Record<string, string> = {}): string => {
+  // Format interests to be more natural
+  const formattedInterests = data.interests
+    .split(',')
+    .map(interest => interest.trim())
+    .filter(interest => interest)
+    .join(' and ');
+
   let result = template
     .replace(/{{name}}/g, data.childName)
     .replace(/{{age}}/g, data.childAge.toString())
-    .replace(/{{interests}}/g, data.interests);
-  
+    .replace(/{{interests}}/g, formattedInterests);
+
   // Replace any extra placeholders
   Object.entries(extras).forEach(([key, value]) => {
     result = result.replace(new RegExp(`{{${key}}}`, 'g'), value);
   });
-  
+
   return result;
+};
+
+// Helper function to format text for autism-friendly reading
+const formatAutismFriendly = (text: string): string => {
+  // Break down complex sentences into shorter ones
+  let formatted = text
+    .replace(/,\s+(?=[^,]*$)/, '. ')  // Replace last comma with period
+    .replace(/\band\b(?=[^.]*$)/, '. '); // Replace last "and" with period
+
+  // Add visual breaks between sentences with clear sequencing
+  const sentences = formatted.split(/(?<=[.!?])\s+/).filter(s => s.trim());
+
+  // Add emojis and visual cues based on content
+  const formattedSentences = sentences.map((sentence, index) => {
+    // Add sequence markers
+    let prefix = '';
+    if (index === 0) prefix = '📖 First: ';
+    else if (index === sentences.length - 1) prefix = '🎯 Finally: ';
+    else prefix = `${index + 1}️⃣ Then: `;
+
+    // Add contextual emojis based on content
+    let enhancedSentence = sentence;
+    if (sentence.match(/happy|smile|laugh|joy|fun/i)) enhancedSentence += ' 😊';
+    if (sentence.match(/sad|cry|tear|upset/i)) enhancedSentence += ' 😢';
+    if (sentence.match(/surprise|shock|amaze/i)) enhancedSentence += ' 😮';
+    if (sentence.match(/friend|together|help/i)) enhancedSentence += ' 🤝';
+    if (sentence.match(/think|wonder|realize/i)) enhancedSentence += ' 💭';
+    if (sentence.match(/see|look|watch/i)) enhancedSentence += ' 👀';
+    if (sentence.match(/hear|listen|sound/i)) enhancedSentence += ' 👂';
+    if (sentence.match(/feel|touch/i)) enhancedSentence += ' 🤚';
+
+    return prefix + enhancedSentence;
+  });
+
+  // Add visual separators between major story sections
+  return `👤 Story for young readers!\n\n` +
+    formattedSentences.join('\n\n') +
+    '\n\n📚 The End!';
 };
 
 // Generate story based on data
@@ -219,57 +273,140 @@ export const generateStory = (data: StoryData): Promise<GeneratedStory> => {
       const characterTrait = getRandomItem(characterTraits);
       const storyHelper = getRandomItem(storyHelpers[storyType] || storyHelpers.adventure);
       const challenge = getRandomItem(challengesByType[storyType] || challengesByType.adventure);
-      
+
       // Get title template based on story type
       const titleTemplates = storyTemplates[storyType] || storyTemplates.adventure;
       const titleTemplate = getRandomItem(titleTemplates);
       const title = fillTemplate(titleTemplate, data);
-      
+
       // Build the story with more personalization
       let content = "";
-      
-      // Add personalized beginning
+
+      if (data.isAutismFriendly) {
+        content = `📖 Our Story Map
+=================
+
+👤 Who's in the Story:
+• Main Character: ${data.childName} (${data.childAge} years old)
+• Special Interests: ${data.interests}
+• Story Type: ${data.storyType}
+
+📝 Story Parts:
+1️⃣ The Beginning: Meeting ${data.childName}
+2️⃣ The Adventure: Magical Discoveries
+3️⃣ The Challenge: Solving Problems
+4️⃣ The Happy Ending: What We Learned
+
+🎯 Reading Goals:
+• Follow the story step by step (look for →)
+• Use your imagination to picture each scene
+• Think about how ${data.childName} feels
+• Guess what might happen next
+
+-------------------
+📚 Let's Start Our Adventure!
+-------------------\n\n`;
+      }
+
+      // Add personalized beginning with sensory details
       const beginning = fillTemplate(getRandomItem(storyBeginnings), data, {
         trait: characterTrait
       });
-      content += beginning;
+      content += data.isAutismFriendly ?
+        "🌅 The Beginning: A New Day\n-------------------\n\n" + formatAutismFriendly(beginning) :
+        beginning;
       content += "\n\n";
-      
-      // Add intro to the character's trait
-      content += `${data.childName} was known for being ${characterTrait}, especially when it came to ${data.interests}.`;
+
+      // Add character introduction with natural trait blending
+      let traitIntro = `${data.childName} was a ${characterTrait} ${data.childAge}-year-old who loved ${data.interests}. Their eyes sparkled with excitement whenever they talked about their interests.`;
+      content += data.isAutismFriendly ? formatAutismFriendly(traitIntro) : traitIntro;
       content += "\n\n";
-      
-      // Add helper/tool introduction based on story type
-      content += `One day, ${data.childName} discovered ${storyHelper} that would help with an exciting adventure related to ${data.interests}.`;
+
+      if (data.isAutismFriendly) {
+        content += `🎯 Our Goal: Join ${data.childName} on a magical adventure!\n\n`;
+      }
+
+      // Add enhanced helper/tool introduction with sensory details
+      let helperIntro = `One special morning, while exploring a secret corner of their world, ${data.childName} discovered ${storyHelper}. It seemed to glow with magical energy, promising to help with ${data.interests} in ways they never imagined.`;
+      content += data.isAutismFriendly ?
+        "🔮 The Magical Discovery\n-------------------\n\n" + formatAutismFriendly(helperIntro) :
+        helperIntro;
       content += "\n\n";
-      
-      // Add middle parts based on length with more personalized content
+
+      if (data.isAutismFriendly) {
+        content += "-------------------\n";
+        content += "🌟 The Adventure Begins!\n";
+        content += "-------------------\n\n";
+      }
+
+      // Add middle parts
       const middleTemplates = storyMiddles[data.storyLength as keyof typeof storyMiddles] || storyMiddles.medium;
       const middleCount = data.storyLength === 'short' ? 1 : (data.storyLength === 'medium' ? 2 : 3);
-      
-      // Get unique middle sections to avoid repetition
       const selectedMiddles = getRandomUniqueItems(middleTemplates, middleCount);
-      
+
       for (let i = 0; i < selectedMiddles.length; i++) {
         const filledMiddle = fillTemplate(selectedMiddles[i], data, {
           helper: storyHelper,
           challenge: challenge,
           trait: characterTrait
         });
-        content += filledMiddle;
+        content += data.isAutismFriendly ? formatAutismFriendly(filledMiddle) : filledMiddle;
         content += "\n\n";
       }
-      
-      // Add a challenge appropriate to the story type
-      content += `Soon, ${data.childName} faced the challenge of ${challenge}. Using ${characterTrait} qualities and knowledge about ${data.interests}, ${data.childName} found a creative solution.`;
+
+      if (data.isAutismFriendly) {
+        content += "-------------------\n";
+        content += "⭐ The Big Challenge\n";
+        content += "-------------------\n\n";
+      }
+
+      // Enhanced challenge section with emotional journey
+      let challengeText = `${data.childName} faced their biggest challenge yet: ${challenge}. Drawing upon their ${characterTrait} nature and their love for ${data.interests}, they felt determined to find a solution. Step by step, with courage and creativity, ${data.childName} worked through the problem.`;
+      content += data.isAutismFriendly ? formatAutismFriendly(challengeText) : challengeText;
       content += "\n\n";
-      
-      // Add personalized ending
-      content += fillTemplate(getRandomItem(storyEndings), data, {
+
+      if (data.isAutismFriendly) {
+        content += "-------------------\n";
+        content += "🌈 The Happy Ending\n";
+        content += "-------------------\n\n";
+      }
+
+      // Enhanced ending with clear lesson
+      const ending = fillTemplate(getRandomItem(storyEndings), data, {
         helper: storyHelper,
         trait: characterTrait
       });
-      
+      content += data.isAutismFriendly ? formatAutismFriendly(ending) : ending;
+
+      if (data.isAutismFriendly) {
+        content += `\n\n📝 Story Review
+=================
+
+🔄 What Happened (In Order):
+1. ${data.childName} started their day loving ${data.interests}
+2. Found a magical ${storyHelper}
+3. Faced the challenge: ${challenge}
+4. Used their ${characterTrait} qualities to succeed
+
+🎭 How ${data.childName} Felt:
+• At Start → Excited about their interests
+• During Challenge → Determined to succeed
+• At End → Proud of their accomplishment
+
+💫 What We Learned:
+${data.childName} discovered that being ${characterTrait} and loving ${data.interests} 
+makes them special and helps them solve any challenge!
+
+❓ Think About:
+• What would you do if you found ${storyHelper}?
+• How would you solve the challenge?
+• What adventure would you like to have next?
+
+-------------------
+🌟 Remember: Every adventure is special when you stay true to yourself!
+-------------------`;
+      }
+
       resolve({ title, content });
     }, 1500); // Simulate loading time
   });

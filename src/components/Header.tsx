@@ -6,8 +6,8 @@ import { Rabbit, Star, Rainbow } from 'lucide-react';
 const Header: React.FC = () => {
   return (
     <header className="w-full py-4 px-6 flex items-center justify-between bg-gradient-to-r from-blue-100 to-purple-100 rounded-lg mb-4">
-      <Link 
-        to="/" 
+      <Link
+        to="/"
         className="flex items-center space-x-2 transition-all duration-300 hover:opacity-80"
       >
         <div className="relative">
@@ -24,6 +24,7 @@ const Header: React.FC = () => {
         </div>
         <Star className="w-6 h-6 text-yellow-400 animate-floating" />
       </div>
+
     </header>
   );
 };
