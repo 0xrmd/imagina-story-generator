@@ -1,5 +1,5 @@
 import React from 'react';
-import OnboardingForm from '@/components/OnboardingForm';
+import AuthenticatedOnboardingForm from '@/components/AuthenticatedOnboardingForm';
 import Header from '@/components/Header';
 import AnimatedTransition from '@/components/AnimatedTransition';
 import { Star, Rabbit, ToyBrick, Cloud, Rainbow } from 'lucide-react';
@@ -47,7 +47,7 @@ const Home = () => {
           </div>
 
           <AnimatedTransition delay={300}>
-            <OnboardingForm />
+            <AuthenticatedOnboardingForm />
           </AnimatedTransition>
         </div>
       </main>

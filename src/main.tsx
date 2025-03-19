@@ -1,5 +1,6 @@
-import { createRoot } from 'react-dom/client'
-import App from './App.tsx'
+import React from 'react'
+import ReactDOM from 'react-dom/client'
+import App from './App'
 import './index.css'
 
 console.log('Starting application...');
@@ -12,9 +13,13 @@ if (!rootElement) {
 
 try {
     console.log('Creating root...');
-    const root = createRoot(rootElement);
+    const root = ReactDOM.createRoot(rootElement);
     console.log('Rendering app...');
-    root.render(<App />);
+    root.render(
+        <React.StrictMode>
+            <App />
+        </React.StrictMode>
+    );
     console.log('Application rendered successfully');
 } catch (error) {
     console.error("Error rendering the app:", error);

@@ -7,7 +7,7 @@ type AuthContextType = {
     profile: Profile | null
     loading: boolean
     signIn: (email: string, password: string) => Promise<void>
-    signUp: (email: string, password: string) => Promise<void>
+    signUp: (email: string, password: string) => Promise<{ user: User | null }>
     signOut: () => Promise<void>
     updateProfile: (data: Partial<Profile>) => Promise<void>
 }
@@ -67,11 +67,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
 
     async function signUp(email: string, password: string) {
-        const { error } = await supabase.auth.signUp({
+        const { data, error } = await supabase.auth.signUp({
             email,
             password,
         })
         if (error) throw error
+        return { user: data.user }
     }
 
     async function signOut() {
@@ -82,12 +83,33 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     async function updateProfile(data: Partial<Profile>) {
         if (!user) throw new Error('No user logged in')
 
-        const { error } = await supabase
+        // First, check if the profile exists
+        const { data: existingProfile, error: fetchError } = await supabase
             .from('profiles')
-            .update(data)
+            .select('*')
             .eq('id', user.id)
+            .single()
 
-        if (error) throw error
+        if (fetchError && fetchError.code !== 'PGRST116') {
+            throw fetchError
+        }
+
+        if (!existingProfile) {
+            // If profile doesn't exist, create it
+            const { error: insertError } = await supabase
+                .from('profiles')
+                .insert([{ id: user.id, ...data }])
+
+            if (insertError) throw insertError
+        } else {
+            // If profile exists, update it
+            const { error: updateError } = await supabase
+                .from('profiles')
+                .update(data)
+                .eq('id', user.id)
+
+            if (updateError) throw updateError
+        }
 
         // Refresh profile data
         await fetchProfile(user.id)

@@ -1,208 +1,194 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import Header from '@/components/Header';
 import StoryDisplay from '@/components/StoryDisplay';
 import AnimatedTransition from '@/components/AnimatedTransition';
 import { generateStory } from '@/utils/storyGenerator';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, Bookmark, Loader2 } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { useAuth } from '@/contexts/AuthContext';
+import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '@/components/ui/card';
+import { supabase } from '@/lib/supabase';
 
 type StoryType = 'adventure' | 'fantasy' | 'animals' | 'educational';
 
-interface StoryData {
-  childName: string;
-  childAge: number;
-  interests: string;
-  storyType: StoryType;
-  storyLength: string;
-  isAutismFriendly?: boolean;
+interface StoryInsights {
+  moral: string;
+  vocabulary: string[];
+  readingTime: string;
 }
 
-interface StoryInsights {
-  sequence: {
-    order: number;
-    event: string;
-    importance: 'high' | 'medium' | 'low';
-    relatedEvents: string[];
-  }[];
-  visualElements: {
-    scene: string;
-    description: string;
-    keyObjects: string[];
-    emotions: string[];
-  }[];
-  suggestedQuestions: {
-    type: 'prediction' | 'analysis' | 'empathy' | 'problem-solving';
-    question: string;
-    context: string;
-    difficulty: 'easy' | 'medium' | 'hard';
-    options: string[];
-    hints: string[];
-  }[];
+interface StoryData {
+  type: StoryType;
+  age: number;
+  theme: string;
+  length: 'short' | 'medium' | 'long';
 }
 
 const Story = () => {
   const location = useLocation();
   const navigate = useNavigate();
-  const [isLoading, setIsLoading] = useState(true);
-  const [story, setStory] = useState({ title: '', content: '' });
+  const { user } = useAuth();
+  const [isSaving, setIsSaving] = useState(false);
+  const [story, setStory] = useState({
+    title: '',
+    content: '',
+    childName: '',
+    childAge: 0,
+    storyType: 'adventure',
+    interests: '',
+    isAutismFriendly: false
+  });
   const [storyInsights, setStoryInsights] = useState<StoryInsights | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
   const storyData = React.useMemo(() => {
-    const state = location.state as StoryData;
-    if (!state) return null;
-    return state;
+    // Check if we have story data from location state (saved story)
+    if (location.state?.story) {
+      return location.state.story;
+    }
+    // Check if we have story data from direct navigation
+    if (location.state) {
+      return location.state;
+    }
+    return null;
   }, [location.state]);
 
-  const generateNewStory = async (data: StoryData) => {
-    setIsLoading(true);
-    try {
-      const generatedStory = await generateStory(data);
-      setStory(generatedStory);
-
-      // Generate story insights if autism-friendly mode is enabled
-      if (data.isAutismFriendly) {
-        const insights: StoryInsights = {
-          sequence: [
-            {
-              order: 1,
-              event: "Meeting the main character",
-              importance: "high",
-              relatedEvents: ["Character introduction"]
-            },
-            {
-              order: 2,
-              event: "Starting the adventure",
-              importance: "high",
-              relatedEvents: ["Story setup"]
-            },
-            {
-              order: 3,
-              event: "Facing challenges",
-              importance: "medium",
-              relatedEvents: ["Problem solving"]
-            },
-            {
-              order: 4,
-              event: "Finding solutions",
-              importance: "high",
-              relatedEvents: ["Resolution"]
-            }
-          ],
-          visualElements: [
-            {
-              scene: "The Beginning",
-              description: "A bright and welcoming scene introducing the main character",
-              keyObjects: ["Main character", "Background setting", "Important items"],
-              emotions: ["Excited", "Curious", "Happy"]
-            },
-            {
-              scene: "The Adventure",
-              description: "An exciting scene showing the main action",
-              keyObjects: ["Action elements", "Supporting characters", "Tools or items"],
-              emotions: ["Determined", "Focused", "Brave"]
-            }
-          ],
-          suggestedQuestions: [
-            {
-              type: "prediction",
-              question: "What do you think will happen next?",
-              context: "After the character discovers something new",
-              difficulty: "easy",
-              options: ["Something good", "A challenge", "A surprise"],
-              hints: ["Think about what the character wants", "Remember what they've learned"]
-            },
-            {
-              type: "empathy",
-              question: "How do you think the character feels?",
-              context: "When facing a difficult situation",
-              difficulty: "medium",
-              options: ["Scared", "Brave", "Unsure"],
-              hints: ["Look at their actions", "Think about what you would feel"]
-            }
-          ]
-        };
-        setStoryInsights(insights);
-      } else {
-        setStoryInsights(null);
-      }
-    } catch (error) {
-      console.error('Failed to generate story:', error);
-      toast.error('Failed to generate story');
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
   useEffect(() => {
-    if (!storyData || !storyData.childName) {
-      toast.error('Please start from the home page to create a story');
-      navigate('/');
+    const loadStory = async () => {
+      if (!storyData) {
+        toast.error('Please start from the home page to create a story');
+        navigate('/');
+        return;
+      }
+
+      setIsLoading(true);
+      try {
+        // If we have a saved story, use it directly
+        if (location.state?.story) {
+          setStory({
+            title: location.state.story.title,
+            content: location.state.story.content,
+            childName: location.state.story.childName || '',
+            childAge: location.state.story.childAge || 0,
+            storyType: location.state.story.storyType || 'adventure',
+            interests: location.state.story.interests || '',
+            isAutismFriendly: location.state.story.isAutismFriendly || false
+          });
+          setStoryInsights({
+            moral: location.state.story.moral || 'The importance of kindness and friendship',
+            vocabulary: location.state.story.vocabulary || ['adventure', 'friendship', 'discovery'],
+            readingTime: location.state.story.readingTime || '5-7 minutes'
+          });
+        } else {
+          // Generate a new story if we have story parameters
+          const generatedStory = await generateStory(storyData);
+          setStory({
+            title: generatedStory.title,
+            content: generatedStory.content,
+            childName: storyData.childName || '',
+            childAge: storyData.childAge || 0,
+            storyType: storyData.storyType || 'adventure',
+            interests: storyData.interests || '',
+            isAutismFriendly: storyData.isAutismFriendly || false
+          });
+          setStoryInsights({
+            moral: generatedStory.moral || 'The importance of kindness and friendship',
+            vocabulary: generatedStory.vocabulary || ['adventure', 'friendship', 'discovery'],
+            readingTime: generatedStory.readingTime || '5-7 minutes'
+          });
+        }
+      } catch (error) {
+        console.error('Error loading story:', error);
+        toast.error('Failed to load story. Please try again.');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadStory();
+  }, [storyData, navigate, location.state]);
+
+  const handleSave = async () => {
+    if (!user) {
+      toast.error('Please sign in to save stories');
       return;
     }
 
-    generateNewStory(storyData);
-  }, [storyData, navigate]);
-
-  const handleRegenerateStory = () => {
-    if (!storyData || isLoading) return;
-    generateNewStory(storyData);
-  };
-
-  const handleSave = () => {
-    import('jspdf').then(({ default: jsPDF }) => {
-      const doc = new jsPDF();
-      const pageWidth = doc.internal.pageSize.width;
-      const pageHeight = doc.internal.pageSize.height;
-      const margin = 20;
-
-      // Background with rounded corners
-      doc.setFillColor('#ffffff');
-      doc.roundedRect(margin / 2, margin / 2, pageWidth - margin, pageHeight - margin, 5, 5, 'F');
-
-      // Title
-      doc.setTextColor('#000000');
-      doc.setFont("helvetica", "bold");
-      doc.setFontSize(28);
-      const titleY = margin + 18;
-      const titleWidth = doc.getTextWidth(story.title);
-
-      // Title background
-      doc.setFillColor('#f3f4f6');
-      doc.roundedRect(pageWidth / 2 - titleWidth / 2 - 10, titleY - 15, titleWidth + 20, 25, 5, 5, 'F');
-      doc.text(story.title, pageWidth / 2, titleY, { align: 'center' });
-
-      // Content
-      doc.setTextColor('#000000');
-      doc.setFont("helvetica", "normal");
-      doc.setFontSize(11);
-
-      const paragraphs = story.content.split('\n\n');
-      let yPosition = titleY + 35;
-      const lineSpacing = 6;
-
-      paragraphs.forEach((paragraph, index) => {
-        const lines = doc.splitTextToSize(paragraph, pageWidth - (margin * 2) - 20);
-        doc.text(lines, margin + 15, yPosition);
-        yPosition += lineSpacing * (lines.length + (index < paragraphs.length - 1 ? 1 : 0));
-
-        if (yPosition > pageHeight - margin * 2) {
-          doc.addPage();
-          yPosition = margin + 20;
-        }
+    setIsSaving(true);
+    try {
+      console.log('Saving story with data:', {
+        user_id: user.id,
+        title: story.title,
+        content: story.content,
+        child_name: story.childName,
+        child_age: story.childAge,
+        story_type: story.storyType,
+        interests: story.interests,
+        is_autism_friendly: story.isAutismFriendly,
+        moral: storyInsights?.moral || 'The importance of kindness and friendship',
+        vocabulary: storyInsights?.vocabulary || ['adventure', 'friendship', 'discovery'],
+        reading_time: storyInsights?.readingTime || '5-7 minutes'
       });
 
-      // Footer
-      const footerY = pageHeight - margin / 2;
-      doc.setFont("helvetica", "italic");
-      doc.setFontSize(10);
-      doc.setTextColor('#6b7280');
-      doc.text('Created with love by StoryLand', pageWidth / 2, footerY, { align: 'center' });
+      const { data, error } = await supabase
+        .from('saved_stories')
+        .insert({
+          user_id: user.id,
+          title: story.title,
+          content: story.content,
+          child_name: story.childName,
+          child_age: story.childAge,
+          story_type: story.storyType,
+          interests: story.interests,
+          is_autism_friendly: story.isAutismFriendly,
+          moral: storyInsights?.moral || 'The importance of kindness and friendship',
+          vocabulary: storyInsights?.vocabulary || ['adventure', 'friendship', 'discovery'],
+          reading_time: storyInsights?.readingTime || '5-7 minutes'
+        })
+        .select();
 
-      doc.save(`${story.title}.pdf`);
-      toast.success('Story saved successfully! ✨');
-    });
+      if (error) {
+        console.error('Supabase error:', error);
+        throw error;
+      }
+
+      console.log('Story saved successfully:', data);
+      toast.success('Story saved successfully!');
+    } catch (error: any) {
+      console.error('Error saving story:', error);
+      toast.error(error.message || 'Failed to save story');
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handleRegenerateStory = async () => {
+    if (!storyData || isLoading) return;
+    setIsLoading(true);
+    try {
+      const generatedStory = await generateStory(storyData);
+      setStory({
+        title: generatedStory.title,
+        content: generatedStory.content,
+        childName: storyData.childName || '',
+        childAge: storyData.childAge || 0,
+        storyType: storyData.storyType || 'adventure',
+        interests: storyData.interests || '',
+        isAutismFriendly: storyData.isAutismFriendly || false
+      });
+      setStoryInsights({
+        moral: generatedStory.moral || 'The importance of kindness and friendship',
+        vocabulary: generatedStory.vocabulary || ['adventure', 'friendship', 'discovery'],
+        readingTime: generatedStory.readingTime || '5-7 minutes'
+      });
+    } catch (error) {
+      console.error('Error regenerating story:', error);
+      toast.error('Failed to regenerate story. Please try again.');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleShare = async () => {
@@ -229,14 +215,10 @@ const Story = () => {
     }
   };
 
-  if (!storyData || !storyData.childName) {
+  if (isLoading) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center p-4">
-        <div className="text-center space-y-4">
-          <h1 className="text-2xl font-bold text-primary">No Story Data</h1>
-          <p className="text-muted-foreground">Please start from the home page to create a story.</p>
-          <Button onClick={() => navigate('/')}>Go to Home</Button>
-        </div>
+      <div className="min-h-screen flex items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
       </div>
     );
   }
@@ -250,19 +232,19 @@ const Story = () => {
           <StoryDisplay
             title={story.title}
             content={story.content}
-            childName={storyData.childName}
-            childAge={storyData.childAge}
-            storyType={storyData.storyType}
-            interests={storyData.interests}
+            childName={story.childName}
+            childAge={story.childAge}
+            storyType={story.storyType}
+            interests={story.interests}
             isLoading={isLoading}
             onNewStory={handleRegenerateStory}
             onSave={handleSave}
             onShare={handleShare}
-            isAutismFriendly={storyData.isAutismFriendly || false}
+            isAutismFriendly={story.isAutismFriendly}
             supportTools={{
-              sequencing: storyData.isAutismFriendly || false,
-              visualization: storyData.isAutismFriendly || false,
-              inferencing: storyData.isAutismFriendly || false
+              sequencing: story.isAutismFriendly,
+              visualization: story.isAutismFriendly,
+              inferencing: story.isAutismFriendly
             }}
             storyInsights={storyInsights}
           />
