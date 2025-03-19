@@ -5,7 +5,7 @@ import StoryDisplay from '@/components/StoryDisplay';
 import AnimatedTransition from '@/components/AnimatedTransition';
 import { generateStory } from '@/utils/storyGenerator';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Bookmark, Loader2 } from 'lucide-react';
+import { ArrowLeft, Bookmark, Loader2, BookmarkX } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { useAuth } from '@/contexts/AuthContext';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '@/components/ui/card';
@@ -17,6 +17,26 @@ interface StoryInsights {
   moral: string;
   vocabulary: string[];
   readingTime: string;
+  sequence: {
+    order: number;
+    event: string;
+    importance: 'high' | 'medium' | 'low';
+    relatedEvents: string[];
+  }[];
+  visualElements: {
+    scene: string;
+    description: string;
+    keyObjects: string[];
+    emotions: string[];
+  }[];
+  suggestedQuestions: {
+    type: 'prediction' | 'analysis' | 'empathy' | 'problem-solving';
+    question: string;
+    context: string;
+    difficulty: 'easy' | 'medium' | 'hard';
+    options: string[];
+    hints: string[];
+  }[];
 }
 
 interface StoryData {
@@ -31,6 +51,8 @@ const Story = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const [isSaving, setIsSaving] = useState(false);
+  const [isSaved, setIsSaved] = useState(false);
+  const [savedStoryId, setSavedStoryId] = useState<string | null>(null);
   const [story, setStory] = useState({
     title: '',
     content: '',
@@ -56,6 +78,33 @@ const Story = () => {
   }, [location.state]);
 
   useEffect(() => {
+    const checkIfStoryIsSaved = async () => {
+      if (!user || !story.title) return;
+
+      try {
+        const { data, error } = await supabase
+          .from('saved_stories')
+          .select('id')
+          .eq('user_id', user.id)
+          .eq('title', story.title)
+          .eq('content', story.content)
+          .single();
+
+        if (error && error.code !== 'PGRST116') { // PGRST116 is "no rows returned"
+          throw error;
+        }
+
+        setIsSaved(!!data);
+        setSavedStoryId(data?.id || null);
+      } catch (error) {
+        console.error('Error checking saved status:', error);
+      }
+    };
+
+    checkIfStoryIsSaved();
+  }, [user, story.title, story.content]);
+
+  useEffect(() => {
     const loadStory = async () => {
       if (!storyData) {
         toast.error('Please start from the home page to create a story');
@@ -79,7 +128,10 @@ const Story = () => {
           setStoryInsights({
             moral: location.state.story.moral || 'The importance of kindness and friendship',
             vocabulary: location.state.story.vocabulary || ['adventure', 'friendship', 'discovery'],
-            readingTime: location.state.story.readingTime || '5-7 minutes'
+            readingTime: location.state.story.readingTime || '5-7 minutes',
+            sequence: location.state.story.sequence || [],
+            visualElements: location.state.story.visualElements || [],
+            suggestedQuestions: location.state.story.suggestedQuestions || []
           });
         } else {
           // Generate a new story if we have story parameters
@@ -96,7 +148,10 @@ const Story = () => {
           setStoryInsights({
             moral: generatedStory.moral || 'The importance of kindness and friendship',
             vocabulary: generatedStory.vocabulary || ['adventure', 'friendship', 'discovery'],
-            readingTime: generatedStory.readingTime || '5-7 minutes'
+            readingTime: generatedStory.readingTime || '5-7 minutes',
+            sequence: generatedStory.sequence || [],
+            visualElements: generatedStory.visualElements || [],
+            suggestedQuestions: generatedStory.suggestedQuestions || []
           });
         }
       } catch (error) {
@@ -118,20 +173,6 @@ const Story = () => {
 
     setIsSaving(true);
     try {
-      console.log('Saving story with data:', {
-        user_id: user.id,
-        title: story.title,
-        content: story.content,
-        child_name: story.childName,
-        child_age: story.childAge,
-        story_type: story.storyType,
-        interests: story.interests,
-        is_autism_friendly: story.isAutismFriendly,
-        moral: storyInsights?.moral || 'The importance of kindness and friendship',
-        vocabulary: storyInsights?.vocabulary || ['adventure', 'friendship', 'discovery'],
-        reading_time: storyInsights?.readingTime || '5-7 minutes'
-      });
-
       const { data, error } = await supabase
         .from('saved_stories')
         .insert({
@@ -145,20 +186,44 @@ const Story = () => {
           is_autism_friendly: story.isAutismFriendly,
           moral: storyInsights?.moral || 'The importance of kindness and friendship',
           vocabulary: storyInsights?.vocabulary || ['adventure', 'friendship', 'discovery'],
-          reading_time: storyInsights?.readingTime || '5-7 minutes'
+          reading_time: storyInsights?.readingTime || '5-7 minutes',
+          sequence: storyInsights?.sequence || [],
+          visual_elements: storyInsights?.visualElements || [],
+          suggested_questions: storyInsights?.suggestedQuestions || []
         })
         .select();
 
-      if (error) {
-        console.error('Supabase error:', error);
-        throw error;
-      }
+      if (error) throw error;
 
-      console.log('Story saved successfully:', data);
+      setIsSaved(true);
+      setSavedStoryId(data[0].id);
       toast.success('Story saved successfully!');
     } catch (error: any) {
       console.error('Error saving story:', error);
       toast.error(error.message || 'Failed to save story');
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handleUnsave = async () => {
+    if (!user || !savedStoryId) return;
+
+    setIsSaving(true);
+    try {
+      const { error } = await supabase
+        .from('saved_stories')
+        .delete()
+        .eq('id', savedStoryId);
+
+      if (error) throw error;
+
+      setIsSaved(false);
+      setSavedStoryId(null);
+      toast.success('Story removed from saved stories');
+    } catch (error: any) {
+      console.error('Error unsaving story:', error);
+      toast.error(error.message || 'Failed to remove story from saved stories');
     } finally {
       setIsSaving(false);
     }
@@ -181,7 +246,10 @@ const Story = () => {
       setStoryInsights({
         moral: generatedStory.moral || 'The importance of kindness and friendship',
         vocabulary: generatedStory.vocabulary || ['adventure', 'friendship', 'discovery'],
-        readingTime: generatedStory.readingTime || '5-7 minutes'
+        readingTime: generatedStory.readingTime || '5-7 minutes',
+        sequence: generatedStory.sequence || [],
+        visualElements: generatedStory.visualElements || [],
+        suggestedQuestions: generatedStory.suggestedQuestions || []
       });
     } catch (error) {
       console.error('Error regenerating story:', error);
@@ -237,16 +305,18 @@ const Story = () => {
             storyType={story.storyType}
             interests={story.interests}
             isLoading={isLoading}
-            onNewStory={handleRegenerateStory}
-            onSave={handleSave}
-            onShare={handleShare}
-            isAutismFriendly={story.isAutismFriendly}
             supportTools={{
               sequencing: story.isAutismFriendly,
               visualization: story.isAutismFriendly,
               inferencing: story.isAutismFriendly
             }}
+            isAutismFriendly={story.isAutismFriendly}
+            onNewStory={handleRegenerateStory}
+            onSave={isSaved ? handleUnsave : handleSave}
+            onShare={handleShare}
             storyInsights={storyInsights}
+            isSaved={isSaved}
+            isSaving={isSaving}
           />
         </AnimatedTransition>
       </main>

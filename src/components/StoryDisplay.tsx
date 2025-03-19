@@ -2,7 +2,7 @@ import React, { useRef, useEffect, useState } from 'react';
 import { cn } from '@/lib/utils';
 import AnimatedTransition from './AnimatedTransition';
 import { Button } from '@/components/ui/button';
-import { ThumbsUp, ThumbsDown, Bookmark, Share2, RefreshCw, ArrowRight, List, Eye, BrainCircuit, Book, CheckCircle2, Sparkles, Brain, Heart, Lightbulb, AlertCircle, ArrowLeft, Circle } from 'lucide-react';
+import { ThumbsUp, ThumbsDown, Bookmark, Share2, RefreshCw, ArrowRight, List, Eye, BrainCircuit, Book, CheckCircle2, Sparkles, Brain, Heart, Lightbulb, AlertCircle, ArrowLeft, Circle, Wand2, Loader2, BookmarkX } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import { useNavigate } from 'react-router-dom';
 
@@ -42,14 +42,44 @@ interface StoryDisplayProps {
   childAge: number;
   storyType: string;
   interests: string;
-  isLoading?: boolean;
+  isLoading: boolean;
   className?: string;
-  supportTools?: AutismSupportTools;
-  isAutismFriendly?: boolean;
+  supportTools: {
+    sequencing: boolean;
+    visualization: boolean;
+    inferencing: boolean;
+  };
+  isAutismFriendly: boolean;
   onNewStory: () => void;
   onSave: () => void;
   onShare: () => void;
-  storyInsights?: StoryInsights | null;
+  storyInsights: {
+    moral: string;
+    vocabulary: string[];
+    readingTime: string;
+    sequence: {
+      order: number;
+      event: string;
+      importance: 'high' | 'medium' | 'low';
+      relatedEvents: string[];
+    }[];
+    visualElements: {
+      scene: string;
+      description: string;
+      keyObjects: string[];
+      emotions: string[];
+    }[];
+    suggestedQuestions: {
+      type: 'prediction' | 'analysis' | 'empathy' | 'problem-solving';
+      question: string;
+      context: string;
+      difficulty: 'easy' | 'medium' | 'hard';
+      options: string[];
+      hints: string[];
+    }[];
+  } | null;
+  isSaved?: boolean;
+  isSaving?: boolean;
 }
 
 const StoryDetailsSidebar: React.FC<{
@@ -62,7 +92,9 @@ const StoryDetailsSidebar: React.FC<{
   onShare: () => void;
   className?: string;
   isLoading?: boolean;
-}> = ({ childName, age, storyType, interests, onNewStory, onSave, onShare, className, isLoading }) => {
+  isSaved?: boolean;
+  isSaving?: boolean;
+}> = ({ childName, age, storyType, interests, onNewStory, onSave, onShare, className, isLoading, isSaved = false, isSaving = false }) => {
   return (
     <div className={cn(
       "rounded-3xl bg-card p-4 sm:p-6 space-y-4 sm:space-y-6 border shadow-sm",
@@ -95,13 +127,19 @@ const StoryDetailsSidebar: React.FC<{
           {isLoading ? "Generating..." : "New Story"}
         </Button>
         <Button
-          variant="outline"
+          variant={isSaved ? "destructive" : "outline"}
           className="w-full"
           onClick={onSave}
-          disabled={isLoading}
+          disabled={isSaving}
         >
-          <Bookmark className="w-4 h-4 mr-2" />
-          Save
+          {isSaving ? (
+            <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+          ) : isSaved ? (
+            <BookmarkX className="w-4 h-4 mr-2" />
+          ) : (
+            <Bookmark className="w-4 h-4 mr-2" />
+          )}
+          {isSaving ? "Saving..." : isSaved ? "Remove from Saved" : "Save Story"}
         </Button>
         <Button
           variant="outline"
@@ -124,18 +162,16 @@ const StoryDisplay: React.FC<StoryDisplayProps> = ({
   childAge,
   storyType,
   interests,
-  isLoading = false,
+  isLoading,
   className,
-  supportTools = {
-    sequencing: false,
-    visualization: true,
-    inferencing: false
-  },
-  isAutismFriendly = false,
+  supportTools,
+  isAutismFriendly,
   onNewStory,
   onSave,
   onShare,
   storyInsights,
+  isSaved = false,
+  isSaving = false
 }) => {
   const contentRef = useRef<HTMLDivElement>(null);
   const [activeReadingIndex, setActiveReadingIndex] = useState<number | null>(null);
@@ -287,6 +323,40 @@ const StoryDisplay: React.FC<StoryDisplayProps> = ({
     const isActive = activeReadingIndex === index;
     const isCompleted = completedEvents.includes(index);
 
+    // Format text for autism-friendly mode
+    let formattedParagraph = paragraph;
+    if (isAutismFriendly) {
+      // Break down complex sentences into shorter ones
+      formattedParagraph = paragraph
+        .replace(/,\s+(?=[^,]*$)/, '. ')  // Replace last comma with period
+        .replace(/\band\b(?=[^.]*$)/, '. '); // Replace last "and" with period
+
+      // Add visual breaks between sentences with clear sequencing
+      const sentences = formattedParagraph.split(/(?<=[.!?])\s+/).filter(s => s.trim());
+
+      // Add emojis and visual cues based on content
+      formattedParagraph = sentences.map((sentence, idx) => {
+        // Add sequence markers
+        let prefix = '';
+        if (idx === 0) prefix = '📖 First: ';
+        else if (idx === sentences.length - 1) prefix = '🎯 Finally: ';
+        else prefix = `${idx + 1}️⃣ Then: `;
+
+        // Add contextual emojis based on content
+        let enhancedSentence = sentence;
+        if (sentence.match(/happy|smile|laugh|joy|fun/i)) enhancedSentence += ' 😊';
+        if (sentence.match(/sad|cry|tear|upset/i)) enhancedSentence += ' 😢';
+        if (sentence.match(/surprise|shock|amaze/i)) enhancedSentence += ' 😮';
+        if (sentence.match(/friend|together|help/i)) enhancedSentence += ' 🤝';
+        if (sentence.match(/think|wonder|realize/i)) enhancedSentence += ' 💭';
+        if (sentence.match(/see|look|watch/i)) enhancedSentence += ' 👀';
+        if (sentence.match(/hear|listen|sound/i)) enhancedSentence += ' 👂';
+        if (sentence.match(/feel|touch/i)) enhancedSentence += ' 🤚';
+
+        return prefix + enhancedSentence;
+      }).join('\n\n');
+    }
+
     return (
       <div
         key={index}
@@ -296,8 +366,13 @@ const StoryDisplay: React.FC<StoryDisplayProps> = ({
           isCompleted && "bg-green-50 border border-green-200"
         )}
       >
-        <div className="prose prose-sm max-w-none">
-          {paragraph}
+        <div className={cn(
+          "prose prose-sm max-w-none",
+          isAutismFriendly && "space-y-4"
+        )}>
+          {formattedParagraph.split('\n\n').map((line, i) => (
+            <p key={i}>{line}</p>
+          ))}
         </div>
 
         {isActive && (
@@ -827,9 +902,12 @@ const StoryDisplay: React.FC<StoryDisplayProps> = ({
             onSave={onSave}
             onShare={onShare}
             isLoading={isLoading}
+            isSaved={isSaved}
+            isSaving={isSaving}
           />
         </div>
       </div>
+
     </div>
   );
 };

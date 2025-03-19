@@ -2,6 +2,7 @@
 // In a real application, this would connect to an API like OpenAI or another LLM
 
 import { aiService } from '@/services/aiService';
+import { supabase } from '@/lib/supabase';
 
 interface StoryData {
   childName: string;
@@ -24,6 +25,40 @@ interface StoryGenerationParams {
   storyType: string;
   storyLength: string;
   isAutismFriendly: boolean;
+}
+
+interface StoryParams {
+  childName: string;
+  childAge: number;
+  storyType: string;
+  interests: string;
+  isAutismFriendly: boolean;
+}
+
+interface StoryInsights {
+  moral: string;
+  vocabulary: string[];
+  readingTime: string;
+  sequence: {
+    order: number;
+    event: string;
+    importance: 'high' | 'medium' | 'low';
+    relatedEvents: string[];
+  }[];
+  visualElements: {
+    scene: string;
+    description: string;
+    keyObjects: string[];
+    emotions: string[];
+  }[];
+  suggestedQuestions: {
+    type: 'prediction' | 'analysis' | 'empathy' | 'problem-solving';
+    question: string;
+    context: string;
+    difficulty: 'easy' | 'medium' | 'hard';
+    options: string[];
+    hints: string[];
+  }[];
 }
 
 // Helper function to get random item from array
@@ -263,151 +298,280 @@ const formatAutismFriendly = (text: string): string => {
     '\n\n📚 The End!';
 };
 
+const storyElements = {
+  characters: [
+    'wise wizard', 'friendly dragon', 'clever fox', 'brave knight',
+    'magical fairy', 'helpful robot', 'mysterious cat', 'playful dolphin',
+    'kind giant', 'smart owl', 'courageous lion', 'gentle unicorn',
+    'funny monkey', 'loyal dog', 'curious rabbit'
+  ],
+  magicalItems: [
+    'glowing crystal', 'magical map', 'enchanted book', 'flying carpet',
+    'invisible cloak', 'time-turning key', 'wishing stone', 'magical wand',
+    'talking mirror', 'lucky charm', 'magical compass', 'enchanted flute',
+    'magical paintbrush', 'flying broom', 'magical lantern'
+  ],
+  challenges: [
+    'solve a riddle', 'find a hidden path', 'break a spell', 'save a friend',
+    'discover a secret', 'fix a broken magic', 'find lost treasure', 'help someone in need',
+    'learn a new skill', 'make new friends', 'overcome a fear', 'solve a puzzle',
+    'find a way home', 'help others', 'discover a new world'
+  ],
+  lessons: [
+    'the power of friendship', 'believing in yourself', 'helping others',
+    'being brave', 'working together', 'never giving up', 'being kind',
+    'sharing with others', 'being patient', 'being creative', 'being honest',
+    'being helpful', 'being determined', 'being caring', 'being curious'
+  ]
+};
+
+const storyTypes = {
+  adventure: {
+    settings: [
+      'enchanted forest', 'magical castle', 'underwater city', 'floating islands',
+      'crystal caves', 'time-traveling train', 'cloud kingdom', 'robot city',
+      'dragons lair', 'pirate ship', 'space station', 'fairy garden',
+      'underground tunnels', 'volcano island', 'ice palace'
+    ],
+    conflicts: [
+      'lost treasure', 'mysterious map', 'ancient prophecy', 'magical curse',
+      'time portal', 'missing friend', 'broken spell', 'stolen artifact',
+      'hidden kingdom', 'forgotten memory', 'magical illness', 'broken promise',
+      'lost power', 'mysterious message', 'ancient secret'
+    ],
+    resolutions: [
+      'discovered new power', 'found true friendship', 'solved ancient puzzle',
+      'broke the curse', 'restored balance', 'found inner strength',
+      'discovered family secret', 'saved the day', 'made new friends',
+      'learned valuable lesson', 'found lost treasure', 'restored peace',
+      'discovered hidden talent', 'solved mystery', 'helped others'
+    ]
+  },
+  fantasy: {
+    settings: [
+      'magical academy', 'dragons realm', 'fairy kingdom', 'wizards tower',
+      'enchanted garden', 'mystic valley', 'crystal palace', 'magical market',
+      'wizards library', 'dragons nest', 'fairy ring', 'magical forest',
+      'wizards workshop', 'dragons lair', 'fairy village'
+    ],
+    conflicts: [
+      'lost magic', 'broken spell', 'missing ingredient', 'cursed object',
+      'forgotten spell', 'magical illness', 'stolen power', 'broken promise',
+      'lost wand', 'mysterious potion', 'magical accident', 'forgotten memory',
+      'cursed friend', 'lost book', 'broken magic'
+    ],
+    resolutions: [
+      'mastered new spell', 'found true magic', 'broke the curse',
+      'discovered power', 'restored magic', 'found inner strength',
+      'learned new spell', 'saved the day', 'made magical friends',
+      'discovered talent', 'found lost magic', 'restored peace',
+      'mastered craft', 'solved mystery', 'helped others'
+    ]
+  },
+  animals: {
+    settings: [
+      'friendly zoo', 'wild jungle', 'ocean depths', 'forest home',
+      'savanna plains', 'mountain den', 'riverbank', 'desert oasis',
+      'arctic tundra', 'rainforest canopy', 'meadow field', 'coastal beach',
+      'prairie land', 'woodland grove', 'tropical island'
+    ],
+    conflicts: [
+      'lost animal friend', 'habitat in danger', 'new animal in town',
+      'missing food source', 'unusual weather', 'strange visitors',
+      'forest changes', 'ocean pollution', 'migration challenges',
+      'new neighbors', 'unusual behavior', 'missing family',
+      'environmental changes', 'new territory', 'unfamiliar sounds'
+    ],
+    resolutions: [
+      'found new friends', 'saved the habitat', 'helped each other',
+      'shared resources', 'adapted together', 'worked as a team',
+      'protected home', 'cleaned environment', 'found safe path',
+      'made peace', 'understood differences', 'reunited family',
+      'adapted to changes', 'shared territory', 'learned to communicate'
+    ]
+  },
+  educational: {
+    settings: [
+      'science lab', 'history museum', 'space station', 'art gallery',
+      'music school', 'math classroom', 'nature center', 'library',
+      'weather station', 'geology site', 'botanical garden', 'aquarium',
+      'planetarium', 'archaeological dig', 'conservation center'
+    ],
+    conflicts: [
+      'scientific mystery', 'historical puzzle', 'mathematical challenge',
+      'artistic block', 'musical problem', 'environmental issue',
+      'research question', 'learning obstacle', 'experiment gone wrong',
+      'discovery needed', 'pattern to solve', 'theory to test',
+      'project deadline', 'knowledge gap', 'skill to master'
+    ],
+    resolutions: [
+      'solved the problem', 'discovered new knowledge', 'learned new skill',
+      'created something new', 'helped others learn', 'made new discovery',
+      'completed project', 'shared knowledge', 'fixed experiment',
+      'found answer', 'solved pattern', 'proved theory',
+      'met deadline', 'filled knowledge gap', 'mastered skill'
+    ]
+  },
+  mystery: {
+    settings: [
+      'detectives office', 'haunted house', 'secret library', 'mysterious mansion',
+      'hidden laboratory', 'ancient ruins', 'secret garden', 'mysterious island',
+      'underground tunnel', 'abandoned factory', 'mysterious school', 'secret room',
+      'hidden passage', 'mysterious cave', 'secret workshop'
+    ],
+    conflicts: [
+      'missing object', 'mysterious note', 'strange sound', 'hidden message',
+      'disappearing items', 'mysterious mark', 'secret code', 'strange event',
+      'missing friend', 'mysterious light', 'hidden clue', 'strange noise',
+      'mysterious shadow', 'secret map', 'strange smell'
+    ],
+    resolutions: [
+      'solved the case', 'found the truth', 'discovered secret',
+      'uncovered mystery', 'found missing item', 'solved puzzle',
+      'discovered truth', 'found answer', 'solved riddle',
+      'uncovered plot', 'found evidence', 'solved problem',
+      'discovered clue', 'found solution', 'solved mystery'
+    ]
+  }
+};
+
+const generateRandomElement = (array: string[]) => {
+  return array[Math.floor(Math.random() * array.length)];
+};
+
+const generateUniqueElements = (array: string[], count: number) => {
+  const shuffled = [...array].sort(() => 0.5 - Math.random());
+  return shuffled.slice(0, count);
+};
+
 // Generate story based on data
-export const generateStory = (data: StoryData): Promise<GeneratedStory> => {
-  return new Promise((resolve) => {
-    // Simulate API call with timeout
-    setTimeout(() => {
-      // Select story elements based on child's data
-      const storyType = data.storyType as keyof typeof storyTemplates;
-      const characterTrait = getRandomItem(characterTraits);
-      const storyHelper = getRandomItem(storyHelpers[storyType] || storyHelpers.adventure);
-      const challenge = getRandomItem(challengesByType[storyType] || challengesByType.adventure);
+export const generateStory = async (params: StoryParams): Promise<{ title: string; content: string; insights: StoryInsights }> => {
+  const { childName, childAge, storyType, interests, isAutismFriendly } = params;
 
-      // Get title template based on story type
-      const titleTemplates = storyTemplates[storyType] || storyTemplates.adventure;
-      const titleTemplate = getRandomItem(titleTemplates);
-      const title = fillTemplate(titleTemplate, data);
+  // Get story type specific elements
+  const typeElements = storyTypes[storyType as keyof typeof storyTypes];
+  const setting = generateRandomElement(typeElements.settings);
+  const conflict = generateRandomElement(typeElements.conflicts);
+  const resolution = generateRandomElement(typeElements.resolutions);
 
-      // Build the story with more personalization
-      let content = "";
+  // Generate random story elements
+  const character = generateRandomElement(storyElements.characters);
+  const magicalItem = generateRandomElement(storyElements.magicalItems);
+  const challenge = generateRandomElement(storyElements.challenges);
+  const lesson = generateRandomElement(storyElements.lessons);
 
-      if (data.isAutismFriendly) {
-        content = `📖 Our Story Map
-=================
+  // Generate unique vocabulary based on story type and interests
+  const vocabulary = generateUniqueElements([
+    ...typeElements.settings,
+    ...typeElements.conflicts,
+    ...typeElements.resolutions,
+    ...interests.split(',').map(i => i.trim()),
+    character,
+    magicalItem,
+    challenge,
+    lesson
+  ], 8);
 
-👤 Who's in the Story:
-• Main Character: ${data.childName} (${data.childAge} years old)
-• Special Interests: ${data.interests}
-• Story Type: ${data.storyType}
+  // Generate story title with more variety
+  const titleTemplates = [
+    `${childName}'s ${storyType.charAt(0).toUpperCase() + storyType.slice(1)}: The ${conflict}`,
+    `${childName} and the ${magicalItem}`,
+    `${childName}'s Journey to ${setting}`,
+    `${childName} and the ${character}'s ${challenge}`,
+    `${childName}'s ${storyType.charAt(0).toUpperCase() + storyType.slice(1)}: A Tale of ${lesson}`
+  ];
+  const title = generateRandomElement(titleTemplates);
 
-📝 Story Parts:
-1️⃣ The Beginning: Meeting ${data.childName}
-2️⃣ The Adventure: Magical Discoveries
-3️⃣ The Challenge: Solving Problems
-4️⃣ The Happy Ending: What We Learned
+  // Generate story content with more creative elements
+  const content = `
+Once upon a time, in a ${setting}, there lived a young adventurer named ${childName}. 
+${childName} was ${childAge} years old and loved ${interests}.
 
-🎯 Reading Goals:
-• Follow the story step by step (look for →)
-• Use your imagination to picture each scene
-• Think about how ${data.childName} feels
-• Guess what might happen next
+One day, while exploring the ${setting}, ${childName} met a ${character} who had a ${magicalItem}. 
+The ${character} told ${childName} about a ${conflict} that needed to be solved.
 
--------------------
-📚 Let's Start Our Adventure!
--------------------\n\n`;
+Determined to help, ${childName} and the ${character} began an exciting journey to ${challenge}. 
+Along the way, they discovered that their love for ${interests} helped them overcome obstacles.
+
+As they ventured deeper into the ${setting}, they faced many challenges but learned about ${lesson}. 
+Together, they worked to find a solution to the ${conflict}.
+
+Finally, after many exciting adventures, ${childName} and the ${character} ${resolution}. 
+This experience taught them that with determination and the help of friends, anything is possible.
+
+From that day forward, ${childName} knew that every adventure, no matter how challenging, could lead to amazing discoveries and new friendships.
+`;
+
+  // Generate story insights with more variety
+  const insights: StoryInsights = {
+    moral: `The importance of ${lesson}`,
+    vocabulary: vocabulary,
+    readingTime: "5-7 minutes",
+    sequence: [
+      {
+        order: 1,
+        event: `Meeting the ${character}`,
+        importance: 'high',
+        relatedEvents: [`Discovering the ${magicalItem}`, `Learning about the ${conflict}`]
+      },
+      {
+        order: 2,
+        event: `Starting the journey to ${challenge}`,
+        importance: 'high',
+        relatedEvents: [`Using the ${magicalItem}`, `Facing obstacles`]
+      },
+      {
+        order: 3,
+        event: "Facing challenges together",
+        importance: 'medium',
+        relatedEvents: [`Learning about ${lesson}`, `Working as a team`]
+      },
+      {
+        order: 4,
+        event: `Solving the ${conflict}`,
+        importance: 'high',
+        relatedEvents: [`Using their skills`, `Helping others`]
+      },
+      {
+        order: 5,
+        event: "Learning valuable lessons",
+        importance: 'medium',
+        relatedEvents: [`Making new friends`, `Growing stronger`]
       }
-
-      // Add personalized beginning with sensory details
-      const beginning = fillTemplate(getRandomItem(storyBeginnings), data, {
-        trait: characterTrait
-      });
-      content += data.isAutismFriendly ?
-        "🌅 The Beginning: A New Day\n-------------------\n\n" + formatAutismFriendly(beginning) :
-        beginning;
-      content += "\n\n";
-
-      // Add character introduction with natural trait blending
-      let traitIntro = `${data.childName} was a ${characterTrait} ${data.childAge}-year-old who loved ${data.interests}. Their eyes sparkled with excitement whenever they talked about their interests.`;
-      content += data.isAutismFriendly ? formatAutismFriendly(traitIntro) : traitIntro;
-      content += "\n\n";
-
-      if (data.isAutismFriendly) {
-        content += `🎯 Our Goal: Join ${data.childName} on a magical adventure!\n\n`;
+    ],
+    visualElements: [
+      {
+        scene: `The ${setting}`,
+        description: `A magical place filled with wonder and mystery`,
+        keyObjects: [setting.split(' ')[0], magicalItem, character],
+        emotions: ['excited', 'curious', 'determined']
+      },
+      {
+        scene: "The Challenge",
+        description: `Working together to ${challenge}`,
+        keyObjects: [magicalItem, character, 'friends'],
+        emotions: ['brave', 'confident', 'happy']
       }
-
-      // Add enhanced helper/tool introduction with sensory details
-      let helperIntro = `One special morning, while exploring a secret corner of their world, ${data.childName} discovered ${storyHelper}. It seemed to glow with magical energy, promising to help with ${data.interests} in ways they never imagined.`;
-      content += data.isAutismFriendly ?
-        "🔮 The Magical Discovery\n-------------------\n\n" + formatAutismFriendly(helperIntro) :
-        helperIntro;
-      content += "\n\n";
-
-      if (data.isAutismFriendly) {
-        content += "-------------------\n";
-        content += "🌟 The Adventure Begins!\n";
-        content += "-------------------\n\n";
+    ],
+    suggestedQuestions: [
+      {
+        type: 'prediction',
+        question: `What do you think ${childName} will discover with the ${magicalItem}?`,
+        context: "At the beginning of the story",
+        difficulty: 'easy',
+        options: ['A new friend', 'A secret path', 'A magical power'],
+        hints: ['Think about what you would do with this magical item', 'What might it help you find?']
+      },
+      {
+        type: 'empathy',
+        question: `How do you think ${childName} felt when they met the ${character}?`,
+        context: "When meeting their new friend",
+        difficulty: 'medium',
+        options: ['Excited', 'Nervous', 'Curious'],
+        hints: ['Think about how you would feel meeting a magical character', 'What would make you feel this way?']
       }
+    ]
+  };
 
-      // Add middle parts
-      const middleTemplates = storyMiddles[data.storyLength as keyof typeof storyMiddles] || storyMiddles.medium;
-      const middleCount = data.storyLength === 'short' ? 1 : (data.storyLength === 'medium' ? 2 : 3);
-      const selectedMiddles = getRandomUniqueItems(middleTemplates, middleCount);
-
-      for (let i = 0; i < selectedMiddles.length; i++) {
-        const filledMiddle = fillTemplate(selectedMiddles[i], data, {
-          helper: storyHelper,
-          challenge: challenge,
-          trait: characterTrait
-        });
-        content += data.isAutismFriendly ? formatAutismFriendly(filledMiddle) : filledMiddle;
-        content += "\n\n";
-      }
-
-      if (data.isAutismFriendly) {
-        content += "-------------------\n";
-        content += "⭐ The Big Challenge\n";
-        content += "-------------------\n\n";
-      }
-
-      // Enhanced challenge section with emotional journey
-      let challengeText = `${data.childName} faced their biggest challenge yet: ${challenge}. Drawing upon their ${characterTrait} nature and their love for ${data.interests}, they felt determined to find a solution. Step by step, with courage and creativity, ${data.childName} worked through the problem.`;
-      content += data.isAutismFriendly ? formatAutismFriendly(challengeText) : challengeText;
-      content += "\n\n";
-
-      if (data.isAutismFriendly) {
-        content += "-------------------\n";
-        content += "🌈 The Happy Ending\n";
-        content += "-------------------\n\n";
-      }
-
-      // Enhanced ending with clear lesson
-      const ending = fillTemplate(getRandomItem(storyEndings), data, {
-        helper: storyHelper,
-        trait: characterTrait
-      });
-      content += data.isAutismFriendly ? formatAutismFriendly(ending) : ending;
-
-      if (data.isAutismFriendly) {
-        content += `\n\n📝 Story Review
-=================
-
-🔄 What Happened (In Order):
-1. ${data.childName} started their day loving ${data.interests}
-2. Found a magical ${storyHelper}
-3. Faced the challenge: ${challenge}
-4. Used their ${characterTrait} qualities to succeed
-
-🎭 How ${data.childName} Felt:
-• At Start → Excited about their interests
-• During Challenge → Determined to succeed
-• At End → Proud of their accomplishment
-
-💫 What We Learned:
-${data.childName} discovered that being ${characterTrait} and loving ${data.interests} 
-makes them special and helps them solve any challenge!
-
-❓ Think About:
-• What would you do if you found ${storyHelper}?
-• How would you solve the challenge?
-• What adventure would you like to have next?
-
--------------------
-🌟 Remember: Every adventure is special when you stay true to yourself!
--------------------`;
-      }
-
-      resolve({ title, content });
-    }, 1500); // Simulate loading time
-  });
+  return { title, content, insights };
 };
