@@ -19,9 +19,6 @@ const Header: React.FC = () => {
 
       <div className="flex items-center space-x-3">
         <Rainbow className="w-6 h-6 text-blue-400 animate-floating" style={{ animationDelay: '0.5s' }} />
-        <div className="tag-chip bg-purple-100 dark:bg-purple-900 text-purple-600 dark:text-purple-300 border border-purple-200 dark:border-purple-800">
-          For Kids
-        </div>
         <Star className="w-6 h-6 text-yellow-400 animate-floating" />
         <ThemeToggle />
       </div>

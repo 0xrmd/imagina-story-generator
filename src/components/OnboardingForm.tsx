@@ -8,6 +8,7 @@ import AnimatedTransition from './AnimatedTransition';
 import { cn } from '@/lib/utils';
 import { Sparkles, Star } from 'lucide-react';
 import { toast } from 'react-hot-toast';
+import { Switch } from "@/components/ui/switch";
 
 interface OnboardingFormProps {
   className?: string;
@@ -153,22 +154,64 @@ const OnboardingForm: React.FC<OnboardingFormProps> = ({ className }): JSX.Eleme
                   <p className="text-muted-foreground">Tell us about their interests and preferences</p>
                 </div>
 
-                <div className="space-y-2 w-full">
-                  <Label htmlFor="interests">Interests & Favorites</Label>
-                  <div className="w-full">
-                    <Input
-                      id="interests"
-                      name="interests"
-                      className="floating-input bg-primary/5 w-full px-4 py-2 min-h-[42px] text-base md:text-sm"
-                      placeholder="E.g., dinosaurs, space, princesses..."
-                      value={formData.interests}
-                      onChange={handleChange}
-                      onKeyDown={handleInterestsKeyDown}
-                    />
+                <div className="space-y-4 w-full">
+                  <div className="space-y-2">
+                    <Label htmlFor="interests">Interests & Favorites</Label>
+                    <div className="w-full">
+                      <Input
+                        id="interests"
+                        name="interests"
+                        className="floating-input bg-primary/5 w-full px-4 py-2 min-h-[42px] text-base md:text-sm"
+                        placeholder="E.g., dinosaurs, space, princesses..."
+                        value={formData.interests}
+                        onChange={handleChange}
+                        onKeyDown={handleInterestsKeyDown}
+                      />
+                    </div>
+                    <p className="text-xs text-muted-foreground pt-1">
+                      Like favorite animals, characters, places, or activities
+                    </p>
                   </div>
-                  <p className="text-xs text-muted-foreground pt-1">
-                    Like favorite animals, characters, places, or activities
-                  </p>
+
+                  <div className="space-y-2 pt-4 border-t">
+                    <div className="flex items-center justify-between p-3 rounded-lg bg-primary/5 dark:bg-primary/10">
+                      <div className="space-y-0.5">
+                        <Label htmlFor="autism-friendly" className="text-base font-medium">Autism-Friendly Mode</Label>
+                        <p className="text-sm text-muted-foreground">
+                          Enable special support tools for better comprehension
+                        </p>
+                      </div>
+                      <Switch
+                        id="autism-friendly"
+                        checked={formData.isAutismFriendly}
+                        onCheckedChange={(checked) => setFormData(prev => ({ ...prev, isAutismFriendly: checked }))}
+                        className="data-[state=checked]:bg-primary data-[state=unchecked]:bg-muted-foreground/20"
+                      />
+                    </div>
+                    {formData.isAutismFriendly && (
+                      <div className="mt-2 p-4 rounded-lg bg-primary/10 dark:bg-primary/20 border border-primary/20 dark:border-primary/30">
+                        <p className="font-medium text-sm mb-2">This mode includes:</p>
+                        <ul className="space-y-2">
+                          <li className="flex items-start gap-2 text-sm">
+                            <span className="text-primary">•</span>
+                            <span>Order Events - Help track story sequence</span>
+                          </li>
+                          <li className="flex items-start gap-2 text-sm">
+                            <span className="text-primary">•</span>
+                            <span>Picture It - Visual prompts for better understanding</span>
+                          </li>
+                          <li className="flex items-start gap-2 text-sm">
+                            <span className="text-primary">•</span>
+                            <span>Think Deeper - Guided questions for comprehension</span>
+                          </li>
+                          <li className="flex items-start gap-2 text-sm">
+                            <span className="text-primary">•</span>
+                            <span>Read Together - Interactive reading support</span>
+                          </li>
+                        </ul>
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
             </AnimatedTransition>
@@ -214,7 +257,7 @@ const OnboardingForm: React.FC<OnboardingFormProps> = ({ className }): JSX.Eleme
                           type="button"
                           onClick={() => handleStoryLengthSelect(length.id)}
                           className={cn(
-                            "flex-1 py-2 px-3 rounded-lg border text-sm transition-all duration-300",
+                            "flex-1 py-4 px-2 rounded-lg border text-sm transition-all duration-300 whitespace-normal break-words",
                             formData.storyLength === length.id
                               ? "border-primary bg-primary/10 text-primary"
                               : "border-border hover:border-primary/50"
@@ -239,9 +282,12 @@ const OnboardingForm: React.FC<OnboardingFormProps> = ({ className }): JSX.Eleme
               <div></div>
             )}
 
-            <Button type="submit" className="group">
+            <Button
+              type="submit"
+              className="group bg-primary text-white hover:bg-primary/90 dark:text-white"
+            >
               {step < 3 ? 'Next' : 'Create Story'}
-              <Star className="w-4 h-4 ml-2 group-hover:animate-floating" />
+              <Star className="w-4 h-4 ml-2 text-white group-hover:animate-floating" />
             </Button>
           </div>
 
