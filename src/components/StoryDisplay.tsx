@@ -493,12 +493,12 @@ const StoryDisplay: React.FC<StoryDisplayProps> = ({
         </Button>
 
         {isAutismFriendly && (
-          <div className="bg-[#1E293B] rounded-[20px] px-4 py-2 flex items-center gap-4">
+          <div className="bg-[#F1F5F9] dark:bg-[#1E293B] rounded-[20px] px-4 py-2 flex items-center gap-4">
             <Button
               variant="ghost"
               className={cn(
-                "gap-2 text-white hover:bg-[#233B60] hover:text-white rounded-[10px] transition-colors duration-200",
-                activeTab === 'sequence' && "bg-[#233B60]"
+                "gap-2 text-slate-700 dark:text-white hover:bg-[#E2E8F0] dark:hover:bg-[#233B60] hover:text-slate-900 dark:hover:text-white rounded-[10px] transition-colors duration-200",
+                activeTab === 'sequence' && "bg-[#E2E8F0] dark:bg-[#233B60] text-slate-900 dark:text-white"
               )}
               onClick={() => setActiveTab(activeTab === 'sequence' ? null : 'sequence')}
             >
@@ -508,8 +508,8 @@ const StoryDisplay: React.FC<StoryDisplayProps> = ({
             <Button
               variant="ghost"
               className={cn(
-                "gap-2 text-white hover:bg-[#233B60] hover:text-white rounded-[10px] transition-colors duration-200",
-                activeTab === 'visual' && "bg-[#233B60]"
+                "gap-2 text-slate-700 dark:text-white hover:bg-[#E2E8F0] dark:hover:bg-[#233B60] hover:text-slate-900 dark:hover:text-white rounded-[10px] transition-colors duration-200",
+                activeTab === 'visual' && "bg-[#E2E8F0] dark:bg-[#233B60] text-slate-900 dark:text-white"
               )}
               onClick={() => setActiveTab(activeTab === 'visual' ? null : 'visual')}
             >
@@ -519,8 +519,8 @@ const StoryDisplay: React.FC<StoryDisplayProps> = ({
             <Button
               variant="ghost"
               className={cn(
-                "gap-2 text-white hover:bg-[#233B60] hover:text-white rounded-[10px] transition-colors duration-200",
-                activeTab === 'thinking' && "bg-[#233B60]"
+                "gap-2 text-slate-700 dark:text-white hover:bg-[#E2E8F0] dark:hover:bg-[#233B60] hover:text-slate-900 dark:hover:text-white rounded-[10px] transition-colors duration-200",
+                activeTab === 'thinking' && "bg-[#E2E8F0] dark:bg-[#233B60] text-slate-900 dark:text-white"
               )}
               onClick={() => setActiveTab(activeTab === 'thinking' ? null : 'thinking')}
             >
