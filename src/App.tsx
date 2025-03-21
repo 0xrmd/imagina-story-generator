@@ -8,8 +8,8 @@ import { AuthProvider } from '@/contexts/AuthContext';
 import Home from '@/pages/Home';
 import Story from "@/pages/Story";
 import NotFound from "./pages/NotFound";
-import SignIn from "./pages/auth/SignIn";
-import SignUp from "./pages/auth/SignUp";
+import Auth from "./pages/auth/Auth";
+import ResetPassword from "./pages/auth/ResetPassword";
 import Profile from "./pages/Profile";
 import ProtectedRoute from "./components/ProtectedRoute";
 import SavedStories from '@/pages/SavedStories';
@@ -32,8 +32,8 @@ const App = () => (
             <Route path="/story" element={<Story />} />
             <Route path="/profile" element={<Profile />} />
             <Route path="/saved-stories" element={<SavedStories />} />
-            <Route path="/auth/signin" element={<SignIn />} />
-            <Route path="/auth/signup" element={<SignUp />} />
+            <Route path="/auth" element={<Auth />} />
+            <Route path="/auth/reset-password" element={<ResetPassword />} />
             <Route
               path="/profile"
               element={

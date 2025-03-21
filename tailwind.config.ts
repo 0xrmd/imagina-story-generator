@@ -1,4 +1,3 @@
-
 import type { Config } from "tailwindcss";
 
 export default {
@@ -105,7 +104,23 @@ export default {
 				floating: {
 					'0%, 100%': { transform: 'translateY(0px)' },
 					'50%': { transform: 'translateY(-10px)' }
-				}
+				},
+				float: {
+					'0%, 100%': { transform: 'translateY(0)' },
+					'50%': { transform: 'translateY(-20px)' },
+				},
+				'float-slow': {
+					'0%, 100%': { transform: 'translateY(0)' },
+					'50%': { transform: 'translateY(-15px)' },
+				},
+				twinkle: {
+					'0%, 100%': { opacity: '1' },
+					'50%': { opacity: '0.3' },
+				},
+				'twinkle-delayed': {
+					'0%, 100%': { opacity: '1' },
+					'50%': { opacity: '0.3' },
+				},
 			},
 			animation: {
 				'accordion-down': 'accordion-down 0.2s ease-out',
@@ -116,7 +131,12 @@ export default {
 				'scale-out': 'scale-out 0.5s ease-out',
 				'slide-in': 'slide-in 0.5s ease-out',
 				'slide-out': 'slide-out 0.5s ease-out',
-				'floating': 'floating 3s ease-in-out infinite'
+				'floating': 'floating 3s ease-in-out infinite',
+				float: 'float 3s ease-in-out infinite',
+				'float-slow': 'float-slow 4s ease-in-out infinite',
+				twinkle: 'twinkle 2s ease-in-out infinite',
+				'twinkle-delayed': 'twinkle 2s ease-in-out infinite 1s',
+				'bounce-delayed': 'bounce 1s infinite 0.5s',
 			}
 		}
 	},

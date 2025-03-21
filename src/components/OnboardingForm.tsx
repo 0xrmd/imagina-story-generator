@@ -204,10 +204,6 @@ const OnboardingForm: React.FC<OnboardingFormProps> = ({ className }): JSX.Eleme
                             <span className="text-primary">•</span>
                             <span>Think Deeper - Guided questions for comprehension</span>
                           </li>
-                          <li className="flex items-start gap-2 text-sm">
-                            <span className="text-primary">•</span>
-                            <span>Read Together - Interactive reading support</span>
-                          </li>
                         </ul>
                       </div>
                     )}

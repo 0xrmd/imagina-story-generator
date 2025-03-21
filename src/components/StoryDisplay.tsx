@@ -397,9 +397,14 @@ const StoryDisplay: React.FC<StoryDisplayProps> = ({
 
     return (
       <div className="mt-6 p-4 bg-muted/30 rounded-lg border border-border/50">
-        <div className="flex items-center gap-2 mb-4">
-          <List className="w-5 h-5 text-blue-500" />
-          <h3 className="text-lg font-semibold text-blue-500">📖 Story Sequence</h3>
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-2">
+            <List className="w-5 h-5 text-blue-500" />
+            <h3 className="text-lg font-semibold text-blue-500">📖 Story Sequence</h3>
+          </div>
+          <div className="text-sm text-muted-foreground">
+            Progress: {sequenceProgress.length} / {storyInsights.sequence.length}
+          </div>
         </div>
 
         <div className="space-y-3">
@@ -407,160 +412,166 @@ const StoryDisplay: React.FC<StoryDisplayProps> = ({
             <div
               key={index}
               className={cn(
-                "p-3 rounded-lg border transition-all duration-200",
+                "p-3 rounded-lg border transition-all duration-200 cursor-pointer",
                 sequenceProgress.includes(index)
                   ? "bg-primary/10 border-primary/20"
                   : "bg-background/50 border-border/30 hover:border-blue-200"
               )}
+              onClick={() => {
+                if (!sequenceProgress.includes(index)) {
+                  // Check if this is the next event in sequence
+                  const nextExpectedIndex = sequenceProgress.length;
+                  if (index === nextExpectedIndex) {
+                    setSequenceProgress([...sequenceProgress, index]);
+                    toast.success('Great job tracking the story!', {
+                      duration: 2000,
+                      position: 'bottom-center'
+                    });
+                  } else {
+                    toast.error('Let\'s follow the story in order!', {
+                      duration: 2000,
+                      position: 'bottom-center'
+                    });
+                  }
+                }
+              }}
             >
               <div className="flex items-start gap-3">
-                <div className="flex-shrink-0 w-8 h-8 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center">
-                  <span className="text-sm font-medium text-blue-600 dark:text-blue-400">
-                    {event.order}
-                  </span>
+                <div className={cn(
+                  "w-6 h-6 rounded-full flex items-center justify-center text-sm font-medium",
+                  sequenceProgress.includes(index)
+                    ? "bg-primary text-white"
+                    : "bg-muted text-muted-foreground"
+                )}>
+                  {index + 1}
                 </div>
                 <div className="flex-1">
-                  <p className="font-medium">{event.event}</p>
-                  <div className="mt-2 flex items-center gap-2">
-                    <span className={cn(
-                      "text-xs px-2 py-1 rounded-full",
-                      event.importance === 'high' ? "bg-red-100 text-red-700" :
-                        event.importance === 'medium' ? "bg-yellow-100 text-yellow-700" :
-                          "bg-green-100 text-green-700"
-                    )}>
-                      {event.importance} importance
-                    </span>
-                    {event.relatedEvents[0] && (
-                      <span className="text-xs text-muted-foreground">
-                        Related to: {event.relatedEvents[0]}
-                      </span>
-                    )}
-                  </div>
+                  <p className="text-sm">{event.event}</p>
+                  {event.importance === 'high' && (
+                    <span className="text-xs text-primary mt-1 inline-block">Important moment</span>
+                  )}
                 </div>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className={cn(
-                    "flex-shrink-0",
-                    sequenceProgress.includes(index) && "text-green-500"
-                  )}
-                  onClick={() => {
-                    setSequenceProgress(prev =>
-                      prev.includes(index)
-                        ? prev.filter(i => i !== index)
-                        : [...prev, index]
-                    );
-                  }}
-                >
-                  {sequenceProgress.includes(index) ? (
-                    <CheckCircle2 className="w-5 h-5" />
-                  ) : (
-                    <CheckCircle2 className="w-5 h-5 text-muted-foreground" />
-                  )}
-                </Button>
+                {sequenceProgress.includes(index) && (
+                  <CheckCircle2 className="w-5 h-5 text-primary" />
+                )}
               </div>
             </div>
           ))}
-        </div>
-
-        <div className="mt-4 flex items-center justify-between">
-          <div className="text-sm text-muted-foreground">
-            Progress: {sequenceProgress.length} / {storyInsights.sequence.length} events
-          </div>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setSequenceProgress([])}
-          >
-            Reset Progress
-          </Button>
         </div>
       </div>
     );
   };
 
   const renderVisualGuide = () => {
-    // Add debug logging
-    console.log('Visual Guide Debug:', {
-      isAutismFriendly,
-      visualizationEnabled: supportTools.visualization,
-      hasStoryInsights: !!storyInsights,
-      visualElements: storyInsights?.visualElements
-    });
+    if (!isAutismFriendly || !supportTools.visualization || !storyInsights) return null;
 
-    if (!isAutismFriendly || !supportTools.visualization || !storyInsights) {
-      console.log('Visual Guide not rendered because:', {
-        isAutismFriendly,
-        visualizationEnabled: supportTools.visualization,
-        hasStoryInsights: !!storyInsights
+    // Function to find matching paragraph for a scene
+    const findMatchingParagraph = (scene: { scene: string; description: string }) => {
+      return paragraphs.findIndex(p => {
+        const paragraphLower = p.toLowerCase();
+        const sceneTitleLower = scene.scene.toLowerCase();
+        const sceneDescLower = scene.description.toLowerCase();
+
+        // Check if either the scene title or description is mentioned in the paragraph
+        return paragraphLower.includes(sceneTitleLower) ||
+          paragraphLower.includes(sceneDescLower) ||
+          // Check for key objects in the paragraph
+          scene.keyObjects.some(obj => paragraphLower.includes(obj.toLowerCase()));
       });
-      return null;
-    }
+    };
 
     return (
-      <div className="mt-6 p-4 bg-muted/30 rounded-lg border border-border/50">
+      <div className="mt-6 p-4 bg-purple-50 dark:bg-purple-900/20 rounded-lg border border-purple-200 dark:border-purple-800/30">
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-2">
-            <Eye className="w-5 h-5 text-green-500" />
-            <h3 className="text-lg font-semibold text-green-500">👀 Visual Guide</h3>
+            <Eye className="w-5 h-5 text-purple-500" />
+            <h3 className="text-lg font-semibold text-purple-500">🎨 Picture It</h3>
           </div>
           <div className="text-sm text-muted-foreground">
-            Reviewed: {reviewedScenes.length} / {storyInsights?.visualElements?.length || 0} scenes
+            {selectedScene !== null ? `Scene ${selectedScene + 1} of ${storyInsights.visualElements.length}` : 'Select a scene'}
           </div>
         </div>
 
-        {storyInsights.visualElements && storyInsights.visualElements.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {storyInsights.visualElements.map((scene, index) => (
+        <div className="space-y-4">
+          {storyInsights.visualElements.map((scene, index) => {
+            const matchingParagraphIndex = findMatchingParagraph(scene);
+            const isMatched = matchingParagraphIndex !== -1;
+
+            return (
               <div
                 key={index}
                 className={cn(
-                  "p-4 rounded-lg border transition-all duration-200",
-                  reviewedScenes.includes(index)
-                    ? "bg-green-50 border-green-200"
-                    : "bg-background/50 border-border/30 hover:border-green-200"
+                  "p-4 rounded-lg border transition-all duration-200 cursor-pointer hover:shadow-md",
+                  selectedScene === index
+                    ? "bg-purple-100 dark:bg-purple-900/40 border-purple-300 dark:border-purple-700"
+                    : "bg-white dark:bg-slate-800/50 border-purple-100 dark:border-purple-800/30 hover:border-purple-200"
                 )}
+                onClick={() => {
+                  setSelectedScene(selectedScene === index ? null : index);
+                  if (selectedScene !== index) {
+                    if (isMatched) {
+                      setActiveReadingIndex(matchingParagraphIndex);
+                      contentRef.current?.scrollTo({
+                        top: contentRef.current.children[matchingParagraphIndex].getBoundingClientRect().top + contentRef.current.scrollTop - 100,
+                        behavior: 'smooth'
+                      });
+                      toast.success('Great observation! Let\'s explore this scene together.', {
+                        duration: 2000,
+                        position: 'bottom-center'
+                      });
+                    } else {
+                      toast.error('This scene appears later in the story. Keep reading!', {
+                        duration: 2000,
+                        position: 'bottom-center'
+                      });
+                    }
+                  }
+                }}
               >
-                <div className="flex items-start justify-between mb-3">
-                  <h4 className="font-medium">{scene.scene}</h4>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className={cn(
-                      "h-8 w-8 p-0",
-                      reviewedScenes.includes(index)
-                        ? "text-green-500 hover:text-green-600"
-                        : "text-gray-400 hover:text-gray-600"
+                <div className="flex items-start justify-between mb-2">
+                  <div className="flex items-center gap-2">
+                    <h4 className="font-medium text-sm">{scene.scene}</h4>
+                    {isMatched && (
+                      <span className="text-xs px-2 py-1 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 rounded-full">
+                        Found in story
+                      </span>
                     )}
-                    onClick={() => handleSceneReview(index)}
-                  >
-                    {reviewedScenes.includes(index) ? (
-                      <CheckCircle2 className="w-5 h-5" />
-                    ) : (
-                      <Circle className="w-5 h-5" />
-                    )}
-                  </Button>
+                  </div>
+                  {selectedScene === index && (
+                    <span className="text-xs px-2 py-1 bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 rounded-full">
+                      Selected
+                    </span>
+                  )}
                 </div>
-
                 <p className="text-sm text-muted-foreground mb-3">{scene.description}</p>
 
-                <div className="space-y-2">
+                <div className="space-y-3">
                   <div>
-                    <p className="text-xs font-medium text-muted-foreground">Key Objects:</p>
-                    <div className="flex flex-wrap gap-2 mt-1">
+                    <p className="text-xs font-medium text-purple-700 dark:text-purple-300 mb-1">Key Objects:</p>
+                    <div className="flex flex-wrap gap-2">
                       {scene.keyObjects.map((obj, i) => (
-                        <span key={i} className="text-xs px-2 py-1 bg-green-100 dark:bg-green-900/30 rounded-full">
+                        <span
+                          key={i}
+                          className={cn(
+                            "px-2 py-1 rounded-full text-xs",
+                            isMatched && paragraphs[matchingParagraphIndex].toLowerCase().includes(obj.toLowerCase())
+                              ? "bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300"
+                              : "bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300"
+                          )}
+                        >
                           {obj}
                         </span>
                       ))}
                     </div>
                   </div>
-
                   <div>
-                    <p className="text-xs font-medium text-muted-foreground">Emotions:</p>
-                    <div className="flex flex-wrap gap-2 mt-1">
+                    <p className="text-xs font-medium text-purple-700 dark:text-purple-300 mb-1">Emotions:</p>
+                    <div className="flex flex-wrap gap-2">
                       {scene.emotions.map((emotion, i) => (
-                        <span key={i} className="text-xs px-2 py-1 bg-blue-100 dark:bg-blue-900/30 rounded-full">
+                        <span
+                          key={i}
+                          className="px-2 py-1 bg-purple-50 dark:bg-purple-900/20 text-purple-600 dark:text-purple-400 rounded-full text-xs"
+                        >
                           {emotion}
                         </span>
                       ))}
@@ -568,116 +579,9 @@ const StoryDisplay: React.FC<StoryDisplayProps> = ({
                   </div>
                 </div>
               </div>
-            ))}
-          </div>
-        ) : (
-          <div className="text-center py-4 text-muted-foreground">
-            <p>No visual elements available for this story.</p>
-          </div>
-        )}
-
-        {reviewedScenes.length > 0 && (
-          <div className="mt-4 flex justify-end">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setReviewedScenes([])}
-              className="text-green-600 hover:text-green-700"
-            >
-              Reset Progress
-            </Button>
-          </div>
-        )}
-      </div>
-    );
-  };
-
-  const renderQuestionFeedback = (index: number, question: any) => {
-    const state = questionStates[index] || {
-      hasIdea: false,
-      needsHelp: false,
-      feedback: '',
-      userIdea: '',
-      helpType: undefined
-    };
-
-    return (
-      <div className="mt-2 space-y-2">
-        {state.hasIdea && (
-          <div className="p-3 bg-green-50 dark:bg-green-950/30 rounded-md border border-green-200 dark:border-green-800">
-            <div className="flex items-start gap-2">
-              <Lightbulb className="w-5 h-5 text-green-500 dark:text-green-400 mt-0.5" />
-              <div className="flex-1">
-                <p className="text-sm font-medium text-green-700 dark:text-green-300 mb-2">Share your idea:</p>
-                <textarea
-                  className="w-full p-3 text-sm border-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-200 dark:focus:ring-green-800 bg-[#F0FDF4] dark:bg-[#1A2E1A] placeholder:text-gray-400 dark:placeholder:text-gray-500 text-gray-700 dark:text-gray-200 border-green-200 dark:border-green-800 hover:border-green-300 dark:hover:border-green-700 transition-colors duration-200"
-                  placeholder="What do you think will happen next? Share your thoughts here..."
-                  rows={3}
-                  value={state.userIdea || ''}
-                  onChange={(e) => handleShareIdea(index, e.target.value)}
-                />
-                <div className="mt-2 flex items-center justify-between">
-                  <p className="text-xs text-green-600 dark:text-green-400">
-                    {state.userIdea ? `${state.userIdea.length} characters` : 'Start typing your idea...'}
-                  </p>
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    className="text-green-600 hover:text-green-700 hover:bg-green-50 dark:text-green-400 dark:hover:text-green-300 dark:hover:bg-green-900/20"
-                    onClick={() => handleShareIdea(index, state.userIdea || '', true)}
-                  >
-                    <Share2 className="w-4 h-4 mr-2" />
-                    Share Idea
-                  </Button>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {state.needsHelp && (
-          <div className="p-3 bg-blue-50 rounded-md border border-blue-200">
-            <div className="flex items-start gap-2">
-              <AlertCircle className="w-5 h-5 text-blue-500 mt-0.5" />
-              <div className="flex-1">
-                <p className="text-sm font-medium text-blue-700 mb-2">Let's explore this together:</p>
-                <div className="space-y-2">
-                  <p className="text-sm text-blue-600">Think about:</p>
-                  <ul className="text-sm space-y-1 text-blue-600 list-disc list-inside">
-                    {question.type === 'prediction' && (
-                      <>
-                        <li>What clues in the story suggest what might happen next?</li>
-                        <li>How do the characters' actions hint at future events?</li>
-                        <li>What patterns or similar situations have you seen before?</li>
-                      </>
-                    )}
-                    {question.type === 'analysis' && (
-                      <>
-                        <li>What details in the story tell us about the characters?</li>
-                        <li>How do their words and actions reveal their personality?</li>
-                        <li>What might be their motivations?</li>
-                      </>
-                    )}
-                    {question.type === 'empathy' && (
-                      <>
-                        <li>How would you feel in this situation?</li>
-                        <li>What might the character be thinking?</li>
-                        <li>What experiences have you had that are similar?</li>
-                      </>
-                    )}
-                    {question.type === 'problem-solving' && (
-                      <>
-                        <li>What are the main challenges in this situation?</li>
-                        <li>What options might the character have?</li>
-                        <li>What would be the best solution and why?</li>
-                      </>
-                    )}
-                  </ul>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
+            );
+          })}
+        </div>
       </div>
     );
   };
@@ -687,114 +591,143 @@ const StoryDisplay: React.FC<StoryDisplayProps> = ({
 
     return (
       <div className="mt-6 p-4 bg-[#7F8B8D]/10 rounded-lg border border-[#7F8B8D]/20">
-        <div className="flex items-center gap-2 mb-4">
-          <BrainCircuit className="w-5 h-5 text-[#7F8B8D]" />
-          <h3 className="text-lg font-semibold text-[#7F8B8D]">💭 Thinking Helper</h3>
-        </div>
-
-        {/* Usage Tips */}
-        <div className="mb-6 p-3 bg-[#7F8B8D]/5 rounded-md border border-[#7F8B8D]/10">
-          <h4 className="text-sm font-medium text-[#7F8B8D] mb-2">How to use Thinking Helper:</h4>
-          <ul className="text-xs space-y-2 text-[#7F8B8D]">
-            <li className="flex items-start gap-2">
-              <Lightbulb className="w-4 h-4 mt-0.5 flex-shrink-0" />
-              <span>Read each question carefully and think about what might happen next</span>
-            </li>
-            <li className="flex items-start gap-2">
-              <Heart className="w-4 h-4 mt-0.5 flex-shrink-0" />
-              <span>Consider how characters might feel in different situations</span>
-            </li>
-            <li className="flex items-start gap-2">
-              <Brain className="w-4 h-4 mt-0.5 flex-shrink-0" />
-              <span>Use the "I have an idea!" button when you want to share your thoughts</span>
-            </li>
-            <li className="flex items-start gap-2">
-              <AlertCircle className="w-4 h-4 mt-0.5 flex-shrink-0" />
-              <span>Click "Need help" if you'd like to explore the question together</span>
-            </li>
-          </ul>
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-2">
+            <BrainCircuit className="w-5 h-5 text-[#7F8B8D]" />
+            <h3 className="text-lg font-semibold text-[#7F8B8D]">💭 Think Deeper</h3>
+          </div>
+          <div className="text-sm text-muted-foreground">
+            {Object.values(questionStates).filter(state => state.hasIdea || state.needsHelp).length} / {storyInsights.suggestedQuestions.length} questions explored
+          </div>
         </div>
 
         <div className="space-y-4">
-          {storyInsights.suggestedQuestions.map((q, index) => {
-            const questionState = questionStates[index] || {
-              hasIdea: false,
-              needsHelp: false,
-              feedback: ''
-            };
-
-            return (
-              <div
-                key={index}
-                className={cn(
-                  "p-3 bg-white/50 dark:bg-gray-800/50 rounded-lg border transition-all duration-200",
-                  questionState.hasIdea && "border-green-200 bg-green-50/50",
-                  questionState.needsHelp && "border-blue-200 bg-blue-50/50",
-                  !questionState.hasIdea && !questionState.needsHelp && "hover:border-[#7F8B8D]/30"
-                )}
-              >
-                <div className="flex items-start gap-2">
-                  <div className="mt-1">
-                    {q.type === 'prediction' && <Sparkles className="w-4 h-4 text-yellow-500" />}
-                    {q.type === 'analysis' && <Brain className="w-4 h-4 text-blue-500" />}
-                    {q.type === 'empathy' && <Heart className="w-4 h-4 text-red-500" />}
-                    {q.type === 'problem-solving' && <Lightbulb className="w-4 h-4 text-green-500" />}
-                  </div>
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2 mb-1">
-                      <p className="text-sm text-muted-foreground">{q.context}</p>
-                      <span className={cn(
-                        "text-xs px-2 py-1 rounded-full",
-                        q.difficulty === 'easy' ? "bg-green-100 text-green-700" :
-                          q.difficulty === 'medium' ? "bg-yellow-100 text-yellow-700" :
-                            "bg-red-100 text-red-700"
-                      )}>
-                        {q.difficulty}
-                      </span>
-                    </div>
-                    <p className="font-medium">{q.question}</p>
-                    <div className="mt-2 flex gap-2">
-                      <Button
-                        variant={questionState.hasIdea ? "secondary" : "outline"}
-                        size="sm"
-                        className={cn(
-                          "gap-1 transition-colors",
-                          questionState.hasIdea && "bg-green-100 hover:bg-green-200 text-green-700"
-                        )}
-                        onClick={() => handleQuestionFeedback(index, 'idea')}
-                      >
-                        <ThumbsUp className="w-4 h-4" />
-                        I have an idea!
-                      </Button>
-                      <Button
-                        variant={questionState.needsHelp ? "secondary" : "outline"}
-                        size="sm"
-                        className={cn(
-                          "gap-1 transition-colors",
-                          questionState.needsHelp && "bg-blue-100 hover:bg-blue-200 text-blue-700"
-                        )}
-                        onClick={() => handleQuestionFeedback(index, 'help')}
-                      >
-                        <ThumbsDown className="w-4 h-4" />
-                        Need help
-                      </Button>
-                    </div>
-                    {renderQuestionFeedback(index, q)}
-                  </div>
+          {storyInsights.suggestedQuestions.map((question, index) => (
+            <div
+              key={index}
+              className={cn(
+                "p-4 rounded-lg border transition-all duration-200",
+                questionStates[index]?.hasIdea && "bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800/30",
+                questionStates[index]?.needsHelp && "bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800/30",
+                !questionStates[index]?.hasIdea && !questionStates[index]?.needsHelp && "bg-white dark:bg-slate-800/50 border-[#7F8B8D]/20"
+              )}
+            >
+              <div className="flex items-start justify-between gap-2 mb-3">
+                <div className="flex-1">
+                  <h4 className="font-medium text-sm">{question.question}</h4>
+                  <p className="text-sm text-muted-foreground mt-1">{question.context}</p>
+                </div>
+                <div className="flex flex-col items-end gap-1">
+                  <span className={cn(
+                    "text-xs px-2 py-1 rounded-full",
+                    question.difficulty === 'easy' ? "bg-green-100 text-green-700" :
+                      question.difficulty === 'medium' ? "bg-yellow-100 text-yellow-700" :
+                        "bg-red-100 text-red-700"
+                  )}>
+                    {question.difficulty}
+                  </span>
+                  {questionStates[index]?.hasIdea && (
+                    <span className="text-xs text-green-600 dark:text-green-400">Shared your idea</span>
+                  )}
+                  {questionStates[index]?.needsHelp && (
+                    <span className="text-xs text-blue-600 dark:text-blue-400">Getting help</span>
+                  )}
                 </div>
               </div>
-            );
-          })}
-        </div>
 
-        <div className="mt-4 text-sm text-[#7F8B8D]">
-          <p>These questions help develop:</p>
-          <ul className="list-disc list-inside mt-1 space-y-1">
-            <li>Predictive thinking</li>
-            <li>Character analysis</li>
-            <li>Emotional intelligence</li>
-            <li>Problem-solving skills</li>
-          </ul>
+              {!questionStates[index]?.hasIdea && !questionStates[index]?.needsHelp && (
+                <div className="flex gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handleQuestionFeedback(index, 'idea')}
+                    className="flex-1 gap-2"
+                  >
+                    <Lightbulb className="w-4 h-4" />
+                    I have an idea
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handleQuestionFeedback(index, 'help')}
+                    className="flex-1 gap-2"
+                  >
+                    <AlertCircle className="w-4 h-4" />
+                    I need help
+                  </Button>
+                </div>
+              )}
+
+              {questionStates[index]?.hasIdea && (
+                <div className="space-y-2">
+                  <textarea
+                    className="w-full p-2 text-sm rounded-md border bg-white dark:bg-slate-800"
+                    placeholder="Share your thoughts about this question..."
+                    value={questionStates[index]?.userIdea || ''}
+                    onChange={(e) => handleShareIdea(index, e.target.value)}
+                    rows={3}
+                  />
+                  <div className="flex gap-2">
+                    <Button
+                      size="sm"
+                      onClick={() => handleShareIdea(index, questionStates[index]?.userIdea || '', true)}
+                      className="flex-1"
+                    >
+                      Share My Idea
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        setQuestionStates(prev => ({
+                          ...prev,
+                          [index]: {
+                            ...prev[index],
+                            hasIdea: false,
+                            userIdea: ''
+                          }
+                        }));
+                      }}
+                    >
+                      Cancel
+                    </Button>
+                  </div>
+                </div>
+              )}
+
+              {questionStates[index]?.needsHelp && (
+                <div className="space-y-2">
+                  <div className="text-sm text-muted-foreground mb-2">
+                    Let's think about this together:
+                  </div>
+                  <ul className="space-y-2">
+                    {question.hints.map((hint, i) => (
+                      <li key={i} className="flex items-start gap-2 text-sm">
+                        <span className="text-[#7F8B8D] mt-1">•</span>
+                        <span>{hint}</span>
+                      </li>
+                    ))}
+                  </ul>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      setQuestionStates(prev => ({
+                        ...prev,
+                        [index]: {
+                          ...prev[index],
+                          needsHelp: false
+                        }
+                      }));
+                    }}
+                    className="mt-2"
+                  >
+                    I understand now
+                  </Button>
+                </div>
+              )}
+            </div>
+          ))}
         </div>
       </div>
     );

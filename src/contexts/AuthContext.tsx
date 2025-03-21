@@ -7,9 +7,11 @@ type AuthContextType = {
     profile: Profile | null
     loading: boolean
     signIn: (email: string, password: string) => Promise<void>
-    signUp: (email: string, password: string) => Promise<{ user: User | null }>
+    signUp: (email: string, password: string, options?: { data?: any }) => Promise<{ user: User | null }>
     signOut: () => Promise<void>
     updateProfile: (data: Partial<Profile>) => Promise<void>
+    resetPassword: (email: string) => Promise<void>
+    updatePassword: (password: string) => Promise<void>
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
@@ -66,10 +68,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         if (error) throw error
     }
 
-    async function signUp(email: string, password: string) {
+    async function signUp(email: string, password: string, options?: { data?: any }) {
         const { data, error } = await supabase.auth.signUp({
             email,
             password,
+            options: {
+                data: options?.data
+            }
         })
         if (error) throw error
         return { user: data.user }
@@ -95,7 +100,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         }
 
         if (!existingProfile) {
-            // If profile doesn't exist, create it
+            //* If profile doesn't exist, create it
             const { error: insertError } = await supabase
                 .from('profiles')
                 .insert([{ id: user.id, ...data }])
@@ -115,6 +120,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         await fetchProfile(user.id)
     }
 
+    async function resetPassword(email: string) {
+        const { error } = await supabase.auth.resetPasswordForEmail(email, {
+            redirectTo: `${window.location.origin}/auth/reset-password`,
+        })
+        if (error) throw error
+    }
+
+    async function updatePassword(password: string) {
+        const { error } = await supabase.auth.updateUser({
+            password: password
+        })
+        if (error) throw error
+    }
+
+    //? This is the context provider that will be used to wrap the app
     return (
         <AuthContext.Provider
             value={{
@@ -125,6 +145,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                 signUp,
                 signOut,
                 updateProfile,
+                resetPassword,
+                updatePassword,
             }}
         >
             {children}
@@ -132,6 +154,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     )
 }
 
+//? This is the hook that will be used to access the auth context
 export function useAuth() {
     const context = useContext(AuthContext)
     if (context === undefined) {

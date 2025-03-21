@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Rabbit, Star, Rainbow, User, LogOut, Bookmark, Settings } from 'lucide-react';
+import { Rabbit, Star, Rainbow, User, LogOut, Bookmark } from 'lucide-react';
 import { ThemeToggle } from './ThemeToggle';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
@@ -52,19 +52,19 @@ const Header: React.FC = () => {
                 <Avatar className="h-8 w-8 ring-2 ring-primary/20">
                   <AvatarImage src={profile?.avatar_url || undefined} />
                   <AvatarFallback className="bg-gradient-to-br from-blue-100 to-purple-100 dark:from-blue-900 dark:to-purple-900">
-                    {profile?.full_name?.charAt(0) || user.email.charAt(0)}
+                    {user.user_metadata?.display_name?.charAt(0) || user.email.charAt(0)}
                   </AvatarFallback>
                 </Avatar>
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent
-              className="w-56 rounded-xl border-0 bg-gradient-to-br from-white to-blue-50 dark:from-slate-900 dark:to-slate-800 shadow-lg p-2"
+              className="w-56 rounded-xl border-white/20 bg-white/80 dark:bg-slate-900/80 backdrop-blur-sm shadow-xl p-2"
               align="end"
               forceMount
             >
               <DropdownMenuLabel className="font-normal p-2">
                 <div className="flex flex-col space-y-1">
-                  <p className="text-sm font-medium leading-none text-primary">{profile?.full_name || 'User'}</p>
+                  <p className="text-sm font-medium leading-none text-transparent bg-clip-text bg-gradient-to-r from-blue-500 to-purple-500">{user.user_metadata?.display_name || 'User'}</p>
                   <p className="text-xs leading-none text-muted-foreground">
                     {user.email}
                   </p>
@@ -73,29 +73,22 @@ const Header: React.FC = () => {
               <DropdownMenuSeparator className="bg-gradient-to-r from-transparent via-primary/20 to-transparent" />
               <DropdownMenuItem
                 onClick={() => navigate('/profile')}
-                className="flex items-center gap-2 p-2 rounded-lg cursor-pointer hover:bg-primary/10 focus:bg-primary/10 transition-colors"
+                className="flex items-center gap-2 p-2 rounded-lg cursor-pointer hover:bg-gradient-to-r hover:from-blue-500/10 hover:to-purple-500/10 focus:bg-gradient-to-r focus:from-blue-500/10 focus:to-purple-500/10 transition-all duration-200"
               >
                 <User className="h-4 w-4 text-primary" />
                 <span>Profile</span>
               </DropdownMenuItem>
               <DropdownMenuItem
                 onClick={() => navigate('/saved-stories')}
-                className="flex items-center gap-2 p-2 rounded-lg cursor-pointer hover:bg-primary/10 focus:bg-primary/10 transition-colors"
+                className="flex items-center gap-2 p-2 rounded-lg cursor-pointer hover:bg-gradient-to-r hover:from-blue-500/10 hover:to-purple-500/10 focus:bg-gradient-to-r focus:from-blue-500/10 focus:to-purple-500/10 transition-all duration-200"
               >
                 <Bookmark className="h-4 w-4 text-primary" />
                 <span>Saved Stories</span>
               </DropdownMenuItem>
-              <DropdownMenuItem
-                onClick={() => navigate('/settings')}
-                className="flex items-center gap-2 p-2 rounded-lg cursor-pointer hover:bg-primary/10 focus:bg-primary/10 transition-colors"
-              >
-                <Settings className="h-4 w-4 text-primary" />
-                <span>Settings</span>
-              </DropdownMenuItem>
               <DropdownMenuSeparator className="bg-gradient-to-r from-transparent via-primary/20 to-transparent" />
               <DropdownMenuItem
                 onClick={handleSignOut}
-                className="flex items-center gap-2 p-2 rounded-lg cursor-pointer hover:bg-primary/10 focus:bg-primary/10 transition-colors"
+                className="flex items-center gap-2 p-2 rounded-lg cursor-pointer hover:bg-gradient-to-r hover:from-blue-500/10 hover:to-purple-500/10 focus:bg-gradient-to-r focus:from-blue-500/10 focus:to-purple-500/10 transition-all duration-200"
               >
                 <LogOut className="h-4 w-4 text-primary" />
                 <span>Sign out</span>
@@ -105,17 +98,10 @@ const Header: React.FC = () => {
         ) : (
           <div className="flex items-center space-x-2">
             <Button
-              variant="ghost"
-              onClick={() => navigate('/auth/signin')}
-              className="hover:bg-primary/10 transition-colors"
+              onClick={() => navigate('/auth')}
+              className="bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 transition-all duration-300 text-white"
             >
-              Sign In
-            </Button>
-            <Button
-              onClick={() => navigate('/auth/signup')}
-              className="bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 transition-all duration-300"
-            >
-              Sign Up
+              Get Started
             </Button>
           </div>
         )}

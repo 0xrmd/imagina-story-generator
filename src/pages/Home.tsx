@@ -2,7 +2,7 @@ import React from 'react';
 import AuthenticatedOnboardingForm from '@/components/AuthenticatedOnboardingForm';
 import Header from '@/components/Header';
 import AnimatedTransition from '@/components/AnimatedTransition';
-import { Star, Rabbit, ToyBrick, Cloud, Rainbow } from 'lucide-react';
+import { Star, Rabbit, ToyBrick, Cloud, Rainbow, BookOpen, Sparkles, Heart } from 'lucide-react';
 
 const Home = () => {
   return (
@@ -21,13 +21,13 @@ const Home = () => {
           <Rainbow className="w-full h-full animate-floating" style={{ animationDelay: '1.2s' }} />
         </div>
 
-        <AnimatedTransition delay={100} className="text-center mb-8">
-          <h1 className="text-3xl md:text-4xl font-bold tracking-tight mb-3 text-transparent bg-clip-text bg-gradient-to-r from-blue-500 to-purple-500">
-            Create magical stories
+        <AnimatedTransition delay={100} className="text-center mb-12">
+          <h1 className="text-4xl md:text-5xl font-bold tracking-tight mb-4 text-transparent bg-clip-text bg-gradient-to-r from-blue-500 to-purple-500">
+            Create Magical Stories
             <br />
-            for your child
+            for Your Child
           </h1>
-          <p className="text-muted-foreground max-w-lg mx-auto text-base md:text-lg">
+          <p className="text-muted-foreground max-w-lg mx-auto text-lg md:text-xl">
             Personalized tales that spark imagination and joy,
             <br className="hidden md:block" />
             crafted with love for bedtime, learning, and fun.
@@ -50,6 +50,34 @@ const Home = () => {
             <AuthenticatedOnboardingForm />
           </AnimatedTransition>
         </div>
+
+        {/* Features section */}
+        <AnimatedTransition delay={500} className="mt-16 w-full">
+          <div className="flex flex-col md:flex-row justify-center items-center gap-6">
+            <div className="flex items-center gap-4 p-4 rounded-xl bg-white/50 dark:bg-slate-800/50 backdrop-blur-sm border border-white/20 dark:border-slate-700/20 flex-1 max-w-xs">
+              <BookOpen className="w-8 h-8 text-primary flex-shrink-0" />
+              <div className="text-left">
+                <h3 className="font-semibold">Personalized Stories</h3>
+                <p className="text-sm text-muted-foreground">Tailored to your child's interests and age</p>
+              </div>
+
+            </div>
+            <div className="flex items-center gap-4 p-4 rounded-xl bg-white/50 dark:bg-slate-800/50 backdrop-blur-sm border border-white/20 dark:border-slate-700/20 flex-1 max-w-xs">
+              <Sparkles className="w-8 h-8 text-primary flex-shrink-0" />
+              <div className="text-left">
+                <h3 className="font-semibold">Magical Experience</h3>
+                <p className="text-sm text-muted-foreground">Engaging narratives that capture imagination</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-4 p-4 rounded-xl bg-white/50 dark:bg-slate-800/50 backdrop-blur-sm border border-white/20 dark:border-slate-700/20 flex-1 max-w-xs">
+              <Heart className="w-8 h-8 text-primary flex-shrink-0" />
+              <div className="text-left">
+                <h3 className="font-semibold">Made with Love</h3>
+                <p className="text-sm text-muted-foreground">Crafted to create lasting memories</p>
+              </div>
+            </div>
+          </div>
+        </AnimatedTransition>
       </main>
 
       <footer className="w-full max-w-4xl mx-auto py-6 text-center text-sm text-muted-foreground">
@@ -62,3 +90,4 @@ const Home = () => {
 };
 
 export default Home;
+

@@ -11,10 +11,5 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey)
 
 export type Profile = {
     id: string
-    updated_at: string
-    username: string
-    full_name: string
     avatar_url: string | null
-    email: string
-    bio: string | null
 } 

@@ -2,12 +2,12 @@ import React, { useEffect, useState } from 'react'
 import { useAuth } from '@/contexts/AuthContext'
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { Loader2, Trash2, BookOpen, Heart, Sparkles } from 'lucide-react'
+import { Loader2, Trash2, BookOpen, Heart, Sparkles, ArrowLeft } from 'lucide-react'
 import { toast } from 'react-hot-toast'
 import { supabase } from '@/lib/supabase'
 import { useNavigate } from 'react-router-dom'
 import Header from '@/components/Header'
-import AnimatedTransition from '@/components/AnimatedTransition'
+import AnimatedBackground from '@/components/AnimatedBackground'
 
 interface SavedStory {
     id: string
@@ -93,119 +93,126 @@ const SavedStories = () => {
 
     if (!user) {
         return (
-            <div className="min-h-screen flex flex-col p-4 md:p-6 bg-gradient-to-b from-blue-50 to-purple-50 dark:from-slate-900 dark:to-slate-800">
-                <Header />
-                <main className="flex-1 w-full max-w-4xl mx-auto flex flex-col items-center justify-center py-10">
-                    <Card className="w-full max-w-md">
-                        <CardHeader>
-                            <CardTitle className="text-2xl text-center">Please Sign In</CardTitle>
-                            <CardDescription className="text-center">
+            <div className="relative min-h-screen w-screen flex items-center justify-center">
+                <AnimatedBackground />
+                <div className="relative z-10">
+                    <Card className="w-[350px] bg-white/80 dark:bg-slate-900/80 backdrop-blur-sm border-white/20 shadow-xl">
+                        <CardHeader className="space-y-1">
+                            <CardTitle className="text-xl text-center">Please Sign In</CardTitle>
+                            <CardDescription className="text-sm text-center">
                                 Sign in to view your saved stories
                             </CardDescription>
                         </CardHeader>
                         <CardContent className="flex justify-center">
-                            <Button onClick={() => navigate('/auth/signin')}>
+                            <Button
+                                onClick={() => navigate('/auth')}
+                                className="bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 transition-all duration-300 text-white"
+                            >
                                 Sign In
                             </Button>
                         </CardContent>
                     </Card>
-                </main>
+                </div>
             </div>
         )
     }
 
     return (
-        <div className="min-h-screen flex flex-col p-4 md:p-6 bg-gradient-to-b from-blue-50 to-purple-50 dark:from-slate-900 dark:to-slate-800">
-            <Header />
+        <div className="relative min-h-screen w-screen flex flex-col items-center justify-center p-4">
+            <AnimatedBackground />
+            <div className="relative z-10 w-full max-w-4xl">
+                <div className="flex items-center mb-6">
+                    <Button
+                        onClick={() => navigate('/')}
+                        variant="ghost"
+                        className="flex items-center gap-2 text-primary hover:text-primary/80"
+                    >
+                        <ArrowLeft className="h-4 w-4" />
+                        Back to Home
+                    </Button>
+                </div>
 
-            <main className="flex-1 w-full max-w-4xl mx-auto py-10">
-                <AnimatedTransition>
-                    <div className="space-y-6">
-                        <div className="flex items-center justify-between">
-                            <h1 className="text-3xl font-bold tracking-tight">Saved Stories</h1>
-                            <Button onClick={() => navigate('/')} variant="outline">
-                                Create New Story
-                            </Button>
-                        </div>
-
-                        {isLoading ? (
-                            <div className="flex items-center justify-center py-10">
-                                <div className="w-8 h-8 border-4 border-primary/20 border-t-primary rounded-full animate-spin" />
+                {isLoading ? (
+                    <Card className="w-full bg-white/80 dark:bg-slate-900/80 backdrop-blur-sm border-white/20 shadow-xl">
+                        <CardContent className="p-6">
+                            <div className="flex flex-col items-center justify-center space-y-4">
+                                <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+                                <p className="text-sm text-muted-foreground text-center">
+                                    Loading your magical stories...
+                                </p>
                             </div>
-                        ) : stories.length === 0 ? (
-                            <Card className="w-full">
-                                <CardHeader>
-                                    <CardTitle className="text-2xl text-center">No Saved Stories</CardTitle>
-                                    <CardDescription className="text-center">
-                                        Your saved stories will appear here
+                        </CardContent>
+                    </Card>
+                ) : stories.length === 0 ? (
+                    <Card className="w-full bg-white/80 dark:bg-slate-900/80 backdrop-blur-sm border-white/20 shadow-xl">
+                        <CardHeader>
+                            <CardTitle className="text-xl text-center">No Saved Stories</CardTitle>
+                            <CardDescription className="text-sm text-center">
+                                Your saved stories will appear here
+                            </CardDescription>
+                        </CardHeader>
+                        <CardContent className="flex justify-center">
+                            <Button
+                                onClick={() => navigate('/')}
+                                className="bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 transition-all duration-300 text-white"
+                            >
+                                Create Your First Story
+                            </Button>
+                        </CardContent>
+                    </Card>
+                ) : (
+                    <div className="grid gap-6 md:grid-cols-2">
+                        {stories.map((story) => (
+                            <Card key={story.id} className="group bg-white/80 dark:bg-slate-900/80 backdrop-blur-sm border-white/20 shadow-xl hover:shadow-2xl transition-all duration-300">
+                                <CardHeader className="space-y-1">
+                                    <div className="flex items-start justify-between">
+                                        <CardTitle className="text-xl line-clamp-2">{story.title}</CardTitle>
+                                        {story.is_autism_friendly && (
+                                            <div className="flex items-center gap-1 text-primary" title="Autism-friendly story">
+                                                <Sparkles className="w-4 h-4" />
+                                            </div>
+                                        )}
+                                    </div>
+                                    <CardDescription>
+                                        {story.child_name && `${story.child_name}, ${story.child_age || 0} years`}
+                                        {story.story_type && ` • ${story.story_type}`}
                                     </CardDescription>
                                 </CardHeader>
-                                <CardContent className="flex justify-center">
-                                    <Button onClick={() => navigate('/')}>
-                                        Create Your First Story
-                                    </Button>
+                                <CardContent>
+                                    <p className="text-sm text-muted-foreground line-clamp-3">
+                                        {story.content}
+                                    </p>
                                 </CardContent>
+                                <CardFooter className="flex justify-between items-center">
+                                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                                        <Heart className="w-4 h-4" />
+                                        <span>{new Date(story.created_at).toLocaleDateString()}</span>
+                                    </div>
+                                    <div className="flex items-center gap-2">
+                                        <Button
+                                            variant="outline"
+                                            size="sm"
+                                            onClick={() => handleReadStory(story)}
+                                            className="group-hover:bg-primary group-hover:text-primary-foreground transition-colors"
+                                        >
+                                            <BookOpen className="w-4 h-4 mr-2" />
+                                            Read
+                                        </Button>
+                                        <Button
+                                            variant="ghost"
+                                            size="sm"
+                                            onClick={() => handleDelete(story.id)}
+                                            className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                                        >
+                                            <Trash2 className="w-4 h-4" />
+                                        </Button>
+                                    </div>
+                                </CardFooter>
                             </Card>
-                        ) : (
-                            <div className="grid gap-6 md:grid-cols-2">
-                                {stories.map((story) => (
-                                    <Card key={story.id} className="group hover:shadow-lg transition-shadow duration-300">
-                                        <CardHeader className="space-y-1">
-                                            <div className="flex items-start justify-between">
-                                                <CardTitle className="text-xl line-clamp-2">{story.title}</CardTitle>
-                                                {story.is_autism_friendly && (
-                                                    <div className="flex items-center gap-1 text-primary" title="Autism-friendly story">
-                                                        <Sparkles className="w-4 h-4" />
-                                                    </div>
-                                                )}
-                                            </div>
-                                            <CardDescription>
-                                                {story.child_name && `${story.child_name}, ${story.child_age || 0} years`}
-                                                {story.story_type && ` • ${story.story_type}`}
-                                            </CardDescription>
-                                        </CardHeader>
-                                        <CardContent>
-                                            <p className="text-sm text-muted-foreground line-clamp-3">
-                                                {story.content}
-                                            </p>
-                                        </CardContent>
-                                        <CardFooter className="flex justify-between items-center">
-                                            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                                                <Heart className="w-4 h-4" />
-                                                <span>{new Date(story.created_at).toLocaleDateString()}</span>
-                                            </div>
-                                            <div className="flex items-center gap-2">
-                                                <Button
-                                                    variant="outline"
-                                                    size="sm"
-                                                    onClick={() => handleReadStory(story)}
-                                                    className="group-hover:bg-primary group-hover:text-primary-foreground transition-colors"
-                                                >
-                                                    <BookOpen className="w-4 h-4 mr-2" />
-                                                    Read
-                                                </Button>
-                                                <Button
-                                                    variant="ghost"
-                                                    size="sm"
-                                                    onClick={() => handleDelete(story.id)}
-                                                    className="text-destructive hover:text-destructive hover:bg-destructive/10"
-                                                >
-                                                    <Trash2 className="w-4 h-4" />
-                                                </Button>
-                                            </div>
-                                        </CardFooter>
-                                    </Card>
-                                ))}
-                            </div>
-                        )}
+                        ))}
                     </div>
-                </AnimatedTransition>
-            </main>
-
-            <footer className="w-full max-w-4xl mx-auto py-6 text-center text-sm text-muted-foreground">
-                <p>StoryLand • Crafting magical stories for children © {new Date().getFullYear()}</p>
-                <p>Made with ❤️ by <a href="https://github.com/medrami-dev" target="_blank" rel="noopener noreferrer" className="font-bold hover:underline">Mohamed Rami</a></p>
-            </footer>
+                )}
+            </div>
         </div>
     )
 }

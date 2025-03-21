@@ -63,6 +63,24 @@ BEGIN
                   WHERE table_name = 'saved_stories' AND column_name = 'reading_time') THEN
         ALTER TABLE public.saved_stories ADD COLUMN reading_time TEXT;
     END IF;
+
+    -- Add sequence column if it doesn't exist
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns 
+                  WHERE table_name = 'saved_stories' AND column_name = 'sequence') THEN
+        ALTER TABLE public.saved_stories ADD COLUMN sequence JSONB;
+    END IF;
+
+    -- Add visual_elements column if it doesn't exist
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns 
+                  WHERE table_name = 'saved_stories' AND column_name = 'visual_elements') THEN
+        ALTER TABLE public.saved_stories ADD COLUMN visual_elements JSONB;
+    END IF;
+
+    -- Add suggested_questions column if it doesn't exist
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns 
+                  WHERE table_name = 'saved_stories' AND column_name = 'suggested_questions') THEN
+        ALTER TABLE public.saved_stories ADD COLUMN suggested_questions JSONB;
+    END IF;
 END $$;
 
 -- Enable Row Level Security
