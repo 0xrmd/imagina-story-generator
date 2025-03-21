@@ -82,13 +82,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     async function signOut() {
         try {
-            const { error } = await supabase.auth.signOut()
-            // Even if there's an error, we want to clear the local state
+            // First clear the local state
             setUser(null)
             setProfile(null)
+
+            // Then sign out from Supabase
+            const { error } = await supabase.auth.signOut()
+
             if (error && !error.message.includes('Auth session missing')) {
                 throw error
             }
+
+            // Force clear any remaining session
+            await supabase.auth.getSession()
         } catch (error) {
             // If it's not an AuthSessionMissingError, rethrow
             if (error?.message && !error.message.includes('Auth session missing')) {

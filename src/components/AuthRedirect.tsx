@@ -2,9 +2,25 @@ import { Navigate } from 'react-router-dom'
 import { useAuth } from '@/contexts/AuthContext'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import AnimatedBackground from '@/components/AnimatedBackground'
+import { useEffect } from 'react'
+import { supabase } from '@/lib/supabase'
 
 export default function AuthRedirect({ children }: { children: React.ReactNode }) {
     const { user, loading } = useAuth()
+
+    // Add a useEffect to double-check the session
+    useEffect(() => {
+        if (user) {
+            // Force a session check when component mounts
+            const checkSession = async () => {
+                const { data: { session } } = await supabase.auth.getSession()
+                if (!session) {
+                    window.location.reload()
+                }
+            }
+            checkSession()
+        }
+    }, [user])
 
     if (loading) {
         return (
