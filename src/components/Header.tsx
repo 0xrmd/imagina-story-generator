@@ -13,6 +13,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { successToast, errorToast } from '@/components/CuteToast';
 
 const Header: React.FC = () => {
   const { user, profile, signOut } = useAuth();
@@ -21,9 +22,11 @@ const Header: React.FC = () => {
   const handleSignOut = async () => {
     try {
       await signOut();
+      successToast('👋 See you next time!');
       navigate('/');
     } catch (error) {
       console.error('Error signing out:', error);
+      errorToast('Something went wrong while signing out. Please try again.');
     }
   };
 
