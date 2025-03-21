@@ -44,40 +44,9 @@ interface StoryDisplayProps {
   interests: string;
   isLoading: boolean;
   className?: string;
-  supportTools: {
-    sequencing: boolean;
-    visualization: boolean;
-    inferencing: boolean;
-  };
-  isAutismFriendly: boolean;
   onNewStory: () => void;
   onSave: () => void;
   onShare: () => void;
-  storyInsights: {
-    moral: string;
-    vocabulary: string[];
-    readingTime: string;
-    sequence: {
-      order: number;
-      event: string;
-      importance: 'high' | 'medium' | 'low';
-      relatedEvents: string[];
-    }[];
-    visualElements: {
-      scene: string;
-      description: string;
-      keyObjects: string[];
-      emotions: string[];
-    }[];
-    suggestedQuestions: {
-      type: 'prediction' | 'analysis' | 'empathy' | 'problem-solving';
-      question: string;
-      context: string;
-      difficulty: 'easy' | 'medium' | 'hard';
-      options: string[];
-      hints: string[];
-    }[];
-  } | null;
   isSaved?: boolean;
   isSaving?: boolean;
 }
@@ -164,12 +133,9 @@ const StoryDisplay: React.FC<StoryDisplayProps> = ({
   interests,
   isLoading,
   className,
-  supportTools,
-  isAutismFriendly,
   onNewStory,
   onSave,
   onShare,
-  storyInsights,
   isSaved = false,
   isSaving = false
 }) => {
@@ -323,40 +289,6 @@ const StoryDisplay: React.FC<StoryDisplayProps> = ({
     const isActive = activeReadingIndex === index;
     const isCompleted = completedEvents.includes(index);
 
-    // Format text for autism-friendly mode
-    let formattedParagraph = paragraph;
-    if (isAutismFriendly) {
-      // Break down complex sentences into shorter ones
-      formattedParagraph = paragraph
-        .replace(/,\s+(?=[^,]*$)/, '. ')  // Replace last comma with period
-        .replace(/\band\b(?=[^.]*$)/, '. '); // Replace last "and" with period
-
-      // Add visual breaks between sentences with clear sequencing
-      const sentences = formattedParagraph.split(/(?<=[.!?])\s+/).filter(s => s.trim());
-
-      // Add emojis and visual cues based on content
-      formattedParagraph = sentences.map((sentence, idx) => {
-        // Add sequence markers
-        let prefix = '';
-        if (idx === 0) prefix = '📖 First: ';
-        else if (idx === sentences.length - 1) prefix = '🎯 Finally: ';
-        else prefix = `${idx + 1}️⃣ Then: `;
-
-        // Add contextual emojis based on content
-        let enhancedSentence = sentence;
-        if (sentence.match(/happy|smile|laugh|joy|fun/i)) enhancedSentence += ' 😊';
-        if (sentence.match(/sad|cry|tear|upset/i)) enhancedSentence += ' 😢';
-        if (sentence.match(/surprise|shock|amaze/i)) enhancedSentence += ' 😮';
-        if (sentence.match(/friend|together|help/i)) enhancedSentence += ' 🤝';
-        if (sentence.match(/think|wonder|realize/i)) enhancedSentence += ' 💭';
-        if (sentence.match(/see|look|watch/i)) enhancedSentence += ' 👀';
-        if (sentence.match(/hear|listen|sound/i)) enhancedSentence += ' 👂';
-        if (sentence.match(/feel|touch/i)) enhancedSentence += ' 🤚';
-
-        return prefix + enhancedSentence;
-      }).join('\n\n');
-    }
-
     return (
       <div
         key={index}
@@ -368,9 +300,8 @@ const StoryDisplay: React.FC<StoryDisplayProps> = ({
       >
         <div className={cn(
           "prose prose-sm max-w-none",
-          isAutismFriendly && "space-y-4"
         )}>
-          {formattedParagraph.split('\n\n').map((line, i) => (
+          {paragraph.split('\n\n').map((line, i) => (
             <p key={i}>{line}</p>
           ))}
         </div>
@@ -745,54 +676,7 @@ const StoryDisplay: React.FC<StoryDisplayProps> = ({
           <ArrowLeft className="w-4 h-4 mr-2 transition-transform group-hover:-translate-x-1" />
           Back
         </Button>
-
-        {isAutismFriendly && (
-          <div className="w-full sm:w-auto bg-[#F1F5F9] dark:bg-[#1E293B] rounded-[20px] px-2 sm:px-4 py-2 flex flex-wrap sm:flex-nowrap items-center gap-2 sm:gap-4">
-            <Button
-              variant="ghost"
-              className={cn(
-                "flex-1 sm:flex-none gap-2 text-slate-700 dark:text-white hover:bg-[#E2E8F0] dark:hover:bg-[#233B60] hover:text-slate-900 dark:hover:text-white rounded-[10px] transition-colors duration-200",
-                activeTab === 'sequence' && "bg-[#E2E8F0] dark:bg-[#233B60] text-slate-900 dark:text-white"
-              )}
-              onClick={() => setActiveTab(activeTab === 'sequence' ? null : 'sequence')}
-            >
-              <List className="w-4 h-4" />
-              <span className="hidden sm:inline">Order Events</span>
-            </Button>
-            <Button
-              variant="ghost"
-              className={cn(
-                "flex-1 sm:flex-none gap-2 text-slate-700 dark:text-white hover:bg-[#E2E8F0] dark:hover:bg-[#233B60] hover:text-slate-900 dark:hover:text-white rounded-[10px] transition-colors duration-200",
-                activeTab === 'visual' && "bg-[#E2E8F0] dark:bg-[#233B60] text-slate-900 dark:text-white"
-              )}
-              onClick={() => setActiveTab(activeTab === 'visual' ? null : 'visual')}
-            >
-              <Eye className="w-4 h-4" />
-              <span className="hidden sm:inline">Picture It</span>
-            </Button>
-            <Button
-              variant="ghost"
-              className={cn(
-                "flex-1 sm:flex-none gap-2 text-slate-700 dark:text-white hover:bg-[#E2E8F0] dark:hover:bg-[#233B60] hover:text-slate-900 dark:hover:text-white rounded-[10px] transition-colors duration-200",
-                activeTab === 'thinking' && "bg-[#E2E8F0] dark:bg-[#233B60] text-slate-900 dark:text-white"
-              )}
-              onClick={() => setActiveTab(activeTab === 'thinking' ? null : 'thinking')}
-            >
-              <BrainCircuit className="w-4 h-4" />
-              <span className="hidden sm:inline">Think Deeper</span>
-            </Button>
-          </div>
-        )}
       </div>
-
-      {/* Support Tools Content */}
-      {isAutismFriendly && activeTab && (
-        <div className="w-full bg-muted/30 rounded-[20px] p-2 sm:p-4">
-          {activeTab === 'sequence' && renderStorySequence()}
-          {activeTab === 'visual' && renderVisualGuide()}
-          {activeTab === 'thinking' && renderCriticalThinking()}
-        </div>
-      )}
 
       {/* Main Content Area */}
       <div className="flex flex-col lg:flex-row gap-4 lg:gap-6">

@@ -305,16 +305,9 @@ const Story = () => {
             storyType={story.storyType}
             interests={story.interests}
             isLoading={isLoading}
-            supportTools={{
-              sequencing: story.isAutismFriendly,
-              visualization: story.isAutismFriendly,
-              inferencing: story.isAutismFriendly
-            }}
-            isAutismFriendly={story.isAutismFriendly}
             onNewStory={handleRegenerateStory}
             onSave={isSaved ? handleUnsave : handleSave}
             onShare={handleShare}
-            storyInsights={storyInsights}
             isSaved={isSaved}
             isSaving={isSaving}
           />

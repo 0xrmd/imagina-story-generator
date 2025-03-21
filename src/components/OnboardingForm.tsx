@@ -172,42 +172,6 @@ const OnboardingForm: React.FC<OnboardingFormProps> = ({ className }): JSX.Eleme
                       Like favorite animals, characters, places, or activities
                     </p>
                   </div>
-
-                  <div className="space-y-2 pt-4 border-t">
-                    <div className="flex items-center justify-between p-3 rounded-lg bg-primary/5 dark:bg-primary/10">
-                      <div className="space-y-0.5">
-                        <Label htmlFor="autism-friendly" className="text-base font-medium">Autism-Friendly Mode</Label>
-                        <p className="text-sm text-muted-foreground">
-                          Enable special support tools for better comprehension
-                        </p>
-                      </div>
-                      <Switch
-                        id="autism-friendly"
-                        checked={formData.isAutismFriendly}
-                        onCheckedChange={(checked) => setFormData(prev => ({ ...prev, isAutismFriendly: checked }))}
-                        className="data-[state=checked]:bg-primary data-[state=unchecked]:bg-muted-foreground/20"
-                      />
-                    </div>
-                    {formData.isAutismFriendly && (
-                      <div className="mt-2 p-4 rounded-lg bg-primary/10 dark:bg-primary/20 border border-primary/20 dark:border-primary/30">
-                        <p className="font-medium text-sm mb-2">This mode includes:</p>
-                        <ul className="space-y-2">
-                          <li className="flex items-start gap-2 text-sm">
-                            <span className="text-primary">•</span>
-                            <span>Order Events - Help track story sequence</span>
-                          </li>
-                          <li className="flex items-start gap-2 text-sm">
-                            <span className="text-primary">•</span>
-                            <span>Picture It - Visual prompts for better understanding</span>
-                          </li>
-                          <li className="flex items-start gap-2 text-sm">
-                            <span className="text-primary">•</span>
-                            <span>Think Deeper - Guided questions for comprehension</span>
-                          </li>
-                        </ul>
-                      </div>
-                    )}
-                  </div>
                 </div>
               </div>
             </AnimatedTransition>

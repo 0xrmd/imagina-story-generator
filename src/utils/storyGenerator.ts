@@ -10,7 +10,6 @@ interface StoryData {
   interests: string;
   storyType: string;
   storyLength: string;
-  isAutismFriendly?: boolean;  // New option for autism-friendly mode
 }
 
 interface GeneratedStory {
@@ -24,7 +23,6 @@ interface StoryGenerationParams {
   interests: string;
   storyType: string;
   storyLength: string;
-  isAutismFriendly: boolean;
 }
 
 interface StoryParams {
@@ -32,7 +30,6 @@ interface StoryParams {
   childAge: number;
   storyType: string;
   interests: string;
-  isAutismFriendly: boolean;
 }
 
 interface StoryInsights {
@@ -446,7 +443,7 @@ const generateUniqueElements = (array: string[], count: number) => {
 
 // Generate story based on data
 export const generateStory = async (params: StoryParams): Promise<{ title: string; content: string; insights: StoryInsights }> => {
-  const { childName, childAge, storyType, interests, isAutismFriendly } = params;
+  const { childName, childAge, storyType, interests } = params;
 
   // Get story type specific elements
   const typeElements = storyTypes[storyType as keyof typeof storyTypes];

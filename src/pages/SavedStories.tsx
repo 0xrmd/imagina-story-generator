@@ -167,11 +167,6 @@ const SavedStories = () => {
                                 <CardHeader className="space-y-1">
                                     <div className="flex items-start justify-between">
                                         <CardTitle className="text-xl line-clamp-2">{story.title}</CardTitle>
-                                        {story.is_autism_friendly && (
-                                            <div className="flex items-center gap-1 text-primary" title="Autism-friendly story">
-                                                <Sparkles className="w-4 h-4" />
-                                            </div>
-                                        )}
                                     </div>
                                     <CardDescription>
                                         {story.child_name && `${story.child_name}, ${story.child_age || 0} years`}
