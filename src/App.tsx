@@ -27,7 +27,7 @@ const App = () => (
             <Route path="/profile" element={<Profile />} />
             <Route path="/saved-stories" element={<SavedStories />} />
             <Route path="/auth" element={<AuthRedirect><Auth /></AuthRedirect>} />
-            <Route path="/auth/reset-password" element={<AuthRedirect><ResetPassword /></AuthRedirect>} />
+            <Route path="/auth/reset-password" element={<ResetPassword />} />
             <Route
               path="/profile"
               element={
