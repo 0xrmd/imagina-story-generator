@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
-import { successToast, errorToast } from '@/components/CuteToast'
+import { successToast, errorToast } from '@/lib/toast.tsx'
 import AnimatedBackground from '@/components/AnimatedBackground'
 import { Eye, EyeOff, Sparkles } from 'lucide-react'
 

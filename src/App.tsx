@@ -1,4 +1,5 @@
 import { Toaster } from "@/components/ui/sonner";
+import { Toaster as HotToaster } from "react-hot-toast";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import { ThemeProvider } from '@/components/ThemeProvider';
@@ -17,6 +18,7 @@ const App = () => (
     <TooltipProvider>
       <AuthProvider>
         <Toaster />
+        <HotToaster position="top-center" />
         <Router>
           <Routes>
             <Route path="/" element={<Home />} />

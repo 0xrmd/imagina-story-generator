@@ -13,7 +13,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { successToast, errorToast } from '@/components/CuteToast';
+import { successToast, errorToast } from '@/lib/toast.tsx';
 
 const Header: React.FC = () => {
   const { user, profile, signOut } = useAuth();

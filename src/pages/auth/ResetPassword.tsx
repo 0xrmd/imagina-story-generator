@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
-import { successToast, errorToast } from '@/components/CuteToast'
+import { successToast, errorToast } from '@/lib/toast.tsx'
 import AnimatedBackground from '@/components/AnimatedBackground'
 import { Eye, EyeOff, Lock, ArrowLeft, Mail } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
@@ -72,7 +72,7 @@ export default function ResetPassword() {
             if (error.message?.includes('expired')) {
                 errorToast('The reset link has expired. Please request a new one.')
                 navigate('/auth/forgot-password')
-            } else  {
+            } else {
                 errorToast('Oops! Something went wrong. Please try again.')
             }
         } finally {

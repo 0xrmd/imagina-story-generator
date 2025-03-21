@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
-import { toast } from 'sonner'
+import { successToast, errorToast } from '@/lib/toast.tsx'
 import { useNavigate } from 'react-router-dom'
 import { Loader2, RefreshCw, User, Mail, Lock, ArrowLeft } from 'lucide-react'
 import AnimatedBackground from '@/components/AnimatedBackground'
@@ -52,10 +52,10 @@ export default function Profile() {
             // Then update the profile
             await updateProfile({ avatar_url: newAvatarUrl })
 
-            toast.success('Avatar updated successfully!')
+            successToast('✨ Your magical avatar has been updated!')
         } catch (error: any) {
             console.error('Avatar update error:', error)
-            toast.error(error.message || 'Error updating avatar. Please try again.')
+            errorToast('Oops! Something went wrong while updating your avatar. Please try again.')
         } finally {
             setIsLoading(false)
         }
@@ -99,7 +99,7 @@ export default function Profile() {
         try {
             // Validate required fields
             if (!formData.display_name.trim()) {
-                toast.error('Display name is required')
+                errorToast('✨ Please enter a display name!')
                 return
             }
 
@@ -110,14 +110,14 @@ export default function Profile() {
 
             if (error) throw error
 
-            toast.success('Profile updated successfully!')
+            successToast('✨ Your magical profile has been updated!')
         } catch (error: any) {
             console.error('Profile update error:', error)
             if (error.message === 'No user logged in') {
-                toast.error('Please sign in to update your profile')
+                errorToast('Please sign in to update your profile')
                 navigate('/auth')
             } else {
-                toast.error(error.message || 'Error updating profile. Please try again.')
+                errorToast('Oops! Something went wrong while updating your profile. Please try again.')
             }
         } finally {
             setIsLoading(false)
