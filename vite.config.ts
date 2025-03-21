@@ -57,17 +57,15 @@ export default defineConfig(({ mode }) => {
               return 'vendor';
             }
           },
-          chunkFileNames: (chunkInfo) => {
-            const hash = chunkInfo.hash.slice(0, 8);
-            return `assets/[name]-[hash].js`;
-          },
+          chunkFileNames: 'assets/[name]-[hash].js',
+          entryFileNames: 'assets/[name]-[hash].js',
           assetFileNames: (assetInfo) => {
-            const extType = assetInfo.name.split('.').at(1);
-            if (/png|jpe?g|svg|gif|tiff|bmp|ico/i.test(extType)) {
+            const extType = assetInfo.name?.split('.').at(1);
+            if (/png|jpe?g|svg|gif|tiff|bmp|ico/i.test(extType || '')) {
               return `assets/images/[name]-[hash][extname]`;
             }
             return `assets/[name]-[hash][extname]`;
-          },
+          }
         }
       }
     },
