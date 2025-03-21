@@ -2,6 +2,7 @@ import { defineConfig, loadEnv } from "vite";
 import react from "@vitejs/plugin-react-swc";
 import path from "path";
 import { componentTagger } from "lovable-tagger";
+import { visualizer } from 'rollup-plugin-visualizer';
 
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => {
@@ -18,6 +19,11 @@ export default defineConfig(({ mode }) => {
       react(),
       mode === 'development' &&
       componentTagger(),
+      mode === 'production' && visualizer({
+        open: true,
+        gzipSize: true,
+        brotliSize: true,
+      }),
     ].filter(Boolean),
     resolve: {
       alias: {
@@ -31,19 +37,37 @@ export default defineConfig(({ mode }) => {
       terserOptions: {
         compress: {
           drop_console: mode === 'production',
-          drop_debugger: mode === 'production'
+          drop_debugger: mode === 'production',
+          pure_funcs: mode === 'production' ? ['console.log'] : []
         }
       },
       rollupOptions: {
         output: {
-          manualChunks: {
-            'react-vendor': ['react', 'react-dom', 'react-router-dom'],
-            'ui-vendor': [
-              '@radix-ui/react-dialog',
-              '@radix-ui/react-dropdown-menu',
-              '@radix-ui/react-popover'
-            ]
-          }
+          manualChunks: (id) => {
+            if (id.includes('node_modules')) {
+              if (id.includes('react')) {
+                return 'react-vendor';
+              }
+              if (id.includes('@radix-ui')) {
+                return 'ui-vendor';
+              }
+              if (id.includes('@supabase')) {
+                return 'supabase-vendor';
+              }
+              return 'vendor';
+            }
+          },
+          chunkFileNames: (chunkInfo) => {
+            const hash = chunkInfo.hash.slice(0, 8);
+            return `assets/[name]-[hash].js`;
+          },
+          assetFileNames: (assetInfo) => {
+            const extType = assetInfo.name.split('.').at(1);
+            if (/png|jpe?g|svg|gif|tiff|bmp|ico/i.test(extType)) {
+              return `assets/images/[name]-[hash][extname]`;
+            }
+            return `assets/[name]-[hash][extname]`;
+          },
         }
       }
     },

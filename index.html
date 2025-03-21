@@ -9,17 +9,26 @@
   <meta name="author" content="StoryLand" />
   <meta property="og:image" content="/og-image.png" />
   <link rel="icon" href="/icon.ico" />
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link
+  <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin="anonymous">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="anonymous">
+  <link rel="preconnect" href="https://cdn.gpteng.co" crossorigin="anonymous">
+  <link rel="preload" as="script" href="https://cdn.gpteng.co/gptengineer.js" crossorigin="anonymous">
+  <link rel="preload" as="style"
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Quicksand:wght@300;400;500;600;700&family=Comic+Neue:wght@300;400;700&display=swap">
+  <link rel="stylesheet"
     href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Quicksand:wght@300;400;500;600;700&family=Comic+Neue:wght@300;400;700&display=swap"
-    rel="stylesheet">
+    media="print" onload="this.media='all'">
+  <noscript>
+    <link rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Quicksand:wght@300;400;500;600;700&family=Comic+Neue:wght@300;400;700&display=swap">
+  </noscript>
 </head>
 
 <body>
   <div id="root"></div>
   <!-- IMPORTANT: DO NOT REMOVE THIS SCRIPT TAG OR THIS VERY COMMENT! -->
-  <script src="https://cdn.gpteng.co/gptengineer.js" type="module"></script>
+  <script src="https://cdn.gpteng.co/gptengineer.js" type="module" crossorigin="anonymous"
+    fetchpriority="high"></script>
   <script type="module" src="/src/main.tsx"></script>
 </body>
 
