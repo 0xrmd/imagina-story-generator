@@ -10,16 +10,30 @@ export default function AuthRedirect({ children }: { children: React.ReactNode }
 
     // Add a useEffect to double-check the session
     useEffect(() => {
-        if (user) {
-            // Force a session check when component mounts
-            const checkSession = async () => {
-                const { data: { session } } = await supabase.auth.getSession()
-                if (!session) {
-                    window.location.reload()
-                }
+        const checkSession = async () => {
+            console.log('AuthRedirect: Checking session')
+            const { data: { session } } = await supabase.auth.getSession()
+            console.log('AuthRedirect: Session state:', session ? 'Session exists' : 'No session')
+
+            // If there's a mismatch between local state and session
+            if ((user && !session) || (!user && session)) {
+                console.log('AuthRedirect: Session mismatch detected')
+                // Clear any lingering session data
+                window.localStorage.removeItem('supabase.auth.token')
+                window.localStorage.removeItem('sb-access-token')
+                window.localStorage.removeItem('sb-refresh-token')
+                await supabase.auth.signOut({ scope: 'global' })
+                window.location.reload()
             }
-            checkSession()
         }
+
+        // Run the check immediately
+        checkSession()
+
+        // Also run the check periodically
+        const interval = setInterval(checkSession, 5000)
+
+        return () => clearInterval(interval)
     }, [user])
 
     if (loading) {
