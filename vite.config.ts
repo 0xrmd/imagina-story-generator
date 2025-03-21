@@ -7,8 +7,8 @@ import { visualizer } from 'rollup-plugin-visualizer';
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => {
   // Load env file based on `mode` in the current working directory.
-  // Set the third parameter to '' to load all env regardless of the `VITE_` prefix.
   const env = loadEnv(mode, process.cwd(), '');
+  const isProduction = mode === 'production';
 
   return {
     server: {
@@ -17,12 +17,12 @@ export default defineConfig(({ mode }) => {
     },
     plugins: [
       react(),
-      mode === 'development' &&
-      componentTagger(),
-      mode === 'production' && visualizer({
-        open: true,
+      mode === 'development' && componentTagger(),
+      isProduction && visualizer({
+        filename: './dist/stats.html',
         gzipSize: true,
         brotliSize: true,
+        open: false // Don't auto-open in production
       }),
     ].filter(Boolean),
     resolve: {
@@ -32,15 +32,15 @@ export default defineConfig(({ mode }) => {
     },
     build: {
       outDir: "dist",
-      sourcemap: mode === 'development',
-      minify: 'terser',
-      terserOptions: {
+      sourcemap: !isProduction,
+      minify: isProduction ? 'terser' : false,
+      terserOptions: isProduction ? {
         compress: {
-          drop_console: mode === 'production',
-          drop_debugger: mode === 'production',
-          pure_funcs: mode === 'production' ? ['console.log'] : []
+          drop_console: true,
+          drop_debugger: true,
+          pure_funcs: ['console.log']
         }
-      },
+      } : undefined,
       rollupOptions: {
         output: {
           manualChunks: (id) => {
