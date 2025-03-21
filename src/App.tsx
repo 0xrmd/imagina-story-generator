@@ -1,8 +1,6 @@
-import { Toaster } from "@/components/ui/toaster";
-import { Toaster as Sonner } from "@/components/ui/sonner";
+import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
-import { Toaster as HotToaster } from 'react-hot-toast';
 import { ThemeProvider } from '@/components/ThemeProvider';
 import { AuthProvider } from '@/contexts/AuthContext';
 import Home from '@/pages/Home';
@@ -18,14 +16,7 @@ const App = () => (
   <ThemeProvider>
     <TooltipProvider>
       <AuthProvider>
-        <HotToaster
-          position="top-center"
-          toastOptions={{
-            duration: 2000,
-          }}
-        />
         <Toaster />
-        <Sonner />
         <Router>
           <Routes>
             <Route path="/" element={<Home />} />

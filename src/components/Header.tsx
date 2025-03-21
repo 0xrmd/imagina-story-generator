@@ -43,7 +43,10 @@ const Header: React.FC = () => {
       <div className="flex items-center space-x-3">
         <Rainbow className="w-6 h-6 text-blue-400 animate-floating" style={{ animationDelay: '0.5s' }} />
         <Star className="w-6 h-6 text-yellow-400 animate-floating" />
-        <ThemeToggle />
+        {/* Theme toggle - visible only on desktop */}
+        <div className="hidden md:block">
+          <ThemeToggle />
+        </div>
 
         {user ? (
           <DropdownMenu>
@@ -85,6 +88,15 @@ const Header: React.FC = () => {
                 <Bookmark className="h-4 w-4 text-primary" />
                 <span>Saved Stories</span>
               </DropdownMenuItem>
+              {/* Theme toggle - visible only on mobile */}
+              <div className="md:hidden">
+                <DropdownMenuItem asChild>
+                  <ThemeToggle
+                    showLabel
+                    className="w-full justify-start cursor-default select-none rounded-sm text-sm outline-none transition-colors focus:bg-accent focus:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50"
+                  />
+                </DropdownMenuItem>
+              </div>
               <DropdownMenuSeparator className="bg-gradient-to-r from-transparent via-primary/20 to-transparent" />
               <DropdownMenuItem
                 onClick={handleSignOut}
@@ -96,7 +108,7 @@ const Header: React.FC = () => {
             </DropdownMenuContent>
           </DropdownMenu>
         ) : (
-          <div className="flex items-center space-x-2">
+          <div className="hidden md:block">
             <Button
               onClick={() => navigate('/auth')}
               className="bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 transition-all duration-300 text-white"
