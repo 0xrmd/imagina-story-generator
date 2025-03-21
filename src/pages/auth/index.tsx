@@ -1,5 +1,6 @@
+import { useRouter } from 'next/router'
+import Link from 'next/link'
 import { useState } from 'react'
-import { useNavigate, Link } from 'react-router-dom'
 import { useAuth } from '@/contexts/AuthContext'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -27,7 +28,7 @@ export default function Auth() {
     const [loading, setLoading] = useState(false)
     const [isSubmitted, setIsSubmitted] = useState(false)
     const { signIn, signUp, updateProfile, resetPassword } = useAuth()
-    const navigate = useNavigate()
+    const router = useRouter()
 
     async function handleSubmit(e: React.FormEvent) {
         e.preventDefault()
@@ -64,7 +65,7 @@ export default function Auth() {
                 }
             } else if (mode === 'signin') {
                 await signIn(email, password)
-                navigate('/')
+                router.push('/')
                 successToast('✨ Welcome back! Your magical journey continues...')
             } else if (mode === 'forgot-password') {
                 await resetPassword(email)
