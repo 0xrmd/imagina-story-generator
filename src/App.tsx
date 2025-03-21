@@ -11,6 +11,7 @@ import Auth from "./pages/auth/Auth";
 import ResetPassword from "./pages/auth/ResetPassword";
 import Profile from "./pages/Profile";
 import ProtectedRoute from "./components/ProtectedRoute";
+import AuthRedirect from "./components/AuthRedirect";
 import SavedStories from '@/pages/SavedStories';
 
 const App = () => (
@@ -25,8 +26,8 @@ const App = () => (
             <Route path="/story" element={<Story />} />
             <Route path="/profile" element={<Profile />} />
             <Route path="/saved-stories" element={<SavedStories />} />
-            <Route path="/auth" element={<Auth />} />
-            <Route path="/auth/reset-password" element={<ResetPassword />} />
+            <Route path="/auth" element={<AuthRedirect><Auth /></AuthRedirect>} />
+            <Route path="/auth/reset-password" element={<AuthRedirect><ResetPassword /></AuthRedirect>} />
             <Route
               path="/profile"
               element={
