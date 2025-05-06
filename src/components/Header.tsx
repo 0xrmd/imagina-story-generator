@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Rabbit, Rainbow, Star } from 'lucide-react';
+import { Rabbit, Rainbow, Star, User, LogOut, Bookmark } from 'lucide-react';
 import { ThemeToggle } from './ThemeToggle';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from './ui/button';
@@ -9,17 +9,26 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { LogOut, User } from 'lucide-react';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { successToast, errorToast } from '@/lib/toast';
 
 const Header: React.FC = () => {
-  const { user, signOut } = useAuth();
+  const { user, profile, signOut } = useAuth();
   const navigate = useNavigate();
 
   const handleSignOut = async () => {
-    await signOut();
-    navigate('/');
+    try {
+      await signOut();
+      successToast('👋 See you next time!');
+      navigate('/');
+    } catch (error) {
+      console.error('Error signing out:', error);
+      errorToast('Something went wrong while signing out. Please try again.');
+    }
   };
 
   return (
@@ -49,11 +58,55 @@ const Header: React.FC = () => {
         {user ? (
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="relative h-8 w-8 rounded-full">
-                <User className="h-4 w-4" />
+              <Button variant="ghost" className="relative h-8 w-8 rounded-full hover:bg-primary/10 transition-colors">
+                <Avatar className="h-8 w-8 ring-2 ring-primary/20">
+                  <AvatarImage src={profile?.avatar_url || undefined} />
+                  <AvatarFallback className="bg-gradient-to-br from-blue-100 to-purple-100 dark:from-blue-900 dark:to-purple-900">
+                    {user.user_metadata?.display_name?.charAt(0) || user.email.charAt(0)}
+                  </AvatarFallback>
+                </Avatar>
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
+            <DropdownMenuContent
+              className="w-56 rounded-xl border-white/20 bg-white/80 dark:bg-slate-900/80 backdrop-blur-sm shadow-xl p-2"
+              align="end"
+              forceMount
+            >
+              <DropdownMenuLabel className="font-normal p-2">
+                <div className="flex flex-col space-y-1">
+                  <p className="text-sm font-medium leading-none text-transparent bg-clip-text bg-gradient-to-r from-blue-500 to-purple-500">
+                    {user.user_metadata?.display_name || 'User'}
+                  </p>
+                  <p className="text-xs leading-none text-muted-foreground">
+                    {user.email}
+                  </p>
+                </div>
+              </DropdownMenuLabel>
+              <DropdownMenuSeparator className="bg-gradient-to-r from-transparent via-primary/20 to-transparent" />
+              <DropdownMenuItem
+                onClick={() => navigate('/profile')}
+                className="flex items-center gap-2 p-2 rounded-lg cursor-pointer hover:bg-gradient-to-r hover:from-blue-500/10 hover:to-purple-500/10 focus:bg-gradient-to-r focus:from-blue-500/10 focus:to-purple-500/10 transition-all duration-200"
+              >
+                <User className="h-4 w-4 text-primary" />
+                <span>Profile</span>
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                onClick={() => navigate('/saved-stories')}
+                className="flex items-center gap-2 p-2 rounded-lg cursor-pointer hover:bg-gradient-to-r hover:from-blue-500/10 hover:to-purple-500/10 focus:bg-gradient-to-r focus:from-blue-500/10 focus:to-purple-500/10 transition-all duration-200"
+              >
+                <Bookmark className="h-4 w-4 text-primary" />
+                <span>Saved Stories</span>
+              </DropdownMenuItem>
+              {/* Theme toggle - visible only on mobile */}
+              <div className="md:hidden">
+                <DropdownMenuItem asChild>
+                  <ThemeToggle
+                    showLabel
+                    className="w-full justify-start cursor-default select-none rounded-sm text-sm outline-none transition-colors focus:bg-accent focus:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50"
+                  />
+                </DropdownMenuItem>
+              </div>
+              <DropdownMenuSeparator className="bg-gradient-to-r from-transparent via-primary/20 to-transparent" />
               <DropdownMenuItem
                 onClick={handleSignOut}
                 className="flex items-center gap-2 p-2 rounded-lg cursor-pointer hover:bg-gradient-to-r hover:from-blue-500/10 hover:to-purple-500/10 focus:bg-gradient-to-r focus:from-blue-500/10 focus:to-purple-500/10 transition-all duration-200"
