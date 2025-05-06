@@ -10,11 +10,13 @@ import { useNavigate } from 'react-router-dom'
 import { Loader2, RefreshCw, User, Mail, Lock, ArrowLeft } from 'lucide-react'
 import AnimatedBackground from '@/components/AnimatedBackground'
 import { supabase } from '@/lib/supabase'
+import { useTranslation } from '@/hooks/useTranslation'
 
 export default function Profile() {
     const { user, profile, loading: authLoading, updateProfile } = useAuth()
     const navigate = useNavigate()
     const [isLoading, setIsLoading] = useState(false)
+    const { t } = useTranslation()
     const [formData, setFormData] = useState({
         display_name: user?.user_metadata?.display_name || '',
     })
@@ -76,14 +78,14 @@ export default function Profile() {
                 <div className="relative z-10">
                     <Card className="w-[350px] bg-white/80 dark:bg-slate-900/80 backdrop-blur-sm border-white/20 shadow-xl">
                         <CardHeader className="space-y-1">
-                            <CardTitle className="text-xl text-center">Not Authenticated</CardTitle>
+                            <CardTitle className="text-xl text-center">{t('profile.notAuthenticated')}</CardTitle>
                             <CardDescription className="text-sm text-center">
-                                Please sign in to view your profile.
+                                {t('profile.signInToView')}
                             </CardDescription>
                         </CardHeader>
                         <CardContent className="flex flex-col gap-4">
                             <Button onClick={() => navigate('/auth')} className="w-full">
-                                Sign In or Create Account
+                                {t('auth.loginButton')}
                             </Button>
                         </CardContent>
                     </Card>
@@ -130,9 +132,9 @@ export default function Profile() {
             <div className="relative z-10">
                 <Card className="w-[350px] bg-white/80 dark:bg-slate-900/80 backdrop-blur-sm border-white/20 shadow-xl">
                     <CardHeader className="space-y-1">
-                        <CardTitle className="text-xl text-center">Profile Settings</CardTitle>
+                        <CardTitle className="text-xl text-center">{t('profile.title')}</CardTitle>
                         <CardDescription className="text-sm text-center">
-                            Update your profile information and settings
+                            {t('profile.description')}
                         </CardDescription>
                     </CardHeader>
                     <form onSubmit={handleSubmit}>
@@ -164,13 +166,13 @@ export default function Profile() {
                                     </div>
                                 </div>
                                 <div className="w-full">
-                                    <Label htmlFor="display_name">Display Name</Label>
+                                    <Label htmlFor="display_name">{t('profile.name')}</Label>
                                     <div className="relative">
                                         <Input
                                             id="display_name"
                                             value={formData.display_name}
                                             onChange={(e) => setFormData({ ...formData, display_name: e.target.value })}
-                                            placeholder="Your display name"
+                                            placeholder={t('profile.namePlaceholder')}
                                             required
                                             className="bg-white/50 dark:bg-slate-800/50 pl-10"
                                         />
@@ -180,7 +182,7 @@ export default function Profile() {
                             </div>
 
                             <div className="grid gap-2">
-                                <Label>Email</Label>
+                                <Label>{t('profile.email')}</Label>
                                 <div className="relative">
                                     <Input
                                         value={user.email}
@@ -205,12 +207,12 @@ export default function Profile() {
                                     {isLoading ? (
                                         <>
                                             <div className="h-3 w-3 animate-spin rounded-full border-2 border-white border-t-transparent" />
-                                            <span>Saving changes...</span>
+                                            <span>{t('profile.saving')}</span>
                                         </>
                                     ) : (
                                         <>
                                             <Lock className="h-3 w-3 text-yellow-300" />
-                                            <span>Save Changes</span>
+                                            <span>{t('profile.save')}</span>
                                         </>
                                     )}
                                 </span>
@@ -221,7 +223,7 @@ export default function Profile() {
                                 className="text-primary hover:underline font-medium flex items-center justify-center gap-1"
                             >
                                 <ArrowLeft className="h-4 w-4" />
-                                Back to Home
+                                {t('profile.backToHome')}
                             </button>
                         </CardFooter>
                     </form>

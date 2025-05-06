@@ -316,7 +316,7 @@ const Story = () => {
 
       <footer className="w-full max-w-4xl mx-auto py-4 sm:py-6 text-center text-sm text-muted-foreground">
         <p className="mb-1">StoryLand • Crafting magical stories for children © {new Date().getFullYear()}</p>
-        <p>Made with ❤️ by <a href="https://github.com/medrami-dev" target="_blank" rel="noopener noreferrer" className="font-bold hover:underline">Mohamed Rami</a></p>
+        <p>Made with ❤️ by <a href="https://instagram.com/med.rami.dev" target="_blank" rel="noopener noreferrer" className="font-bold hover:underline">Mohamed Rami</a></p>
       </footer>
     </div>
   );

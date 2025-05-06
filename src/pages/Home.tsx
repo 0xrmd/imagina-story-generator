@@ -83,7 +83,7 @@ const Home = () => {
       <footer className="w-full max-w-4xl mx-auto py-6 text-center text-sm text-muted-foreground">
         <Star className="w-4 h-4 text-yellow-400" />
         <p> StoryLand • Crafting magical stories for children © {new Date().getFullYear()} </p>
-        <p> Made with ❤️ by <a href="https://github.com/medrami-dev" target="_blank" rel="noopener noreferrer" style={{ fontWeight: 'bold' }}>Mohamed Rami</a> </p>
+        <p> Made with ❤️ by <a href="https://instagram.com/med.rami.dev" target="_blank" rel="noopener noreferrer" style={{ fontWeight: 'bold' }}>Mohamed Rami</a> </p>
       </footer>
     </div>
   );

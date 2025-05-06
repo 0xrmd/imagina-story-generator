@@ -442,7 +442,14 @@ const generateUniqueElements = (array: string[], count: number) => {
 };
 
 // Generate story based on data
-export const generateStory = async (params: StoryParams): Promise<{ title: string; content: string; insights: StoryInsights }> => {
+export const generateStory = async (params: StoryParams): Promise<{
+  moral: string;
+  vocabulary: string[];
+  readingTime: string;
+  sequence: any[];
+  visualElements: any[];
+  suggestedQuestions: any[]; title: string; content: string; insights: StoryInsights 
+}> => {
   const { childName, childAge, storyType, interests } = params;
 
   // Get story type specific elements
