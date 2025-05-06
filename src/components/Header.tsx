@@ -1,10 +1,9 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
-import { Rabbit, Rainbow, Star, User, LogOut, Bookmark } from 'lucide-react';
+import { Link, useNavigate } from 'react-router-dom';
+import { Rabbit, Star, Rainbow, User, LogOut, Bookmark } from 'lucide-react';
 import { ThemeToggle } from './ThemeToggle';
 import { useAuth } from '@/contexts/AuthContext';
-import { Button } from './ui/button';
-import { useNavigate } from 'react-router-dom';
+import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -12,9 +11,9 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+} from '@/components/ui/dropdown-menu';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { successToast, errorToast } from '@/lib/toast';
+import { successToast, errorToast } from '@/lib/toast.tsx';
 
 const Header: React.FC = () => {
   const { user, profile, signOut } = useAuth();
@@ -36,20 +35,17 @@ const Header: React.FC = () => {
       <Link
         to="/"
         className="flex items-center space-x-2 transition-all duration-300 hover:opacity-80"
-        fetchpriority="high"
       >
-        <div className="relative w-9 h-9">
+        <div className="relative">
           <div className="absolute inset-0 bg-primary/20 rounded-full blur-md animate-pulse"></div>
-          <Rabbit className="w-full h-full text-primary relative z-10" aria-hidden="true" />
+          <Rabbit className="w-9 h-9 text-primary relative z-10" />
         </div>
-        <span className="font-bold text-2xl tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-blue-500 to-purple-500">
-          StoryLand
-        </span>
+        <span className="font-bold text-2xl tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-blue-500 to-purple-500">StoryLand</span>
       </Link>
 
       <div className="flex items-center space-x-3">
-        <Rainbow className="w-6 h-6 text-blue-400 animate-floating" style={{ animationDelay: '0.5s' }} aria-hidden="true" />
-        <Star className="w-6 h-6 text-yellow-400 animate-floating" aria-hidden="true" />
+        <Rainbow className="w-6 h-6 text-blue-400 animate-floating" style={{ animationDelay: '0.5s' }} />
+        <Star className="w-6 h-6 text-yellow-400 animate-floating" />
         {/* Theme toggle - visible only on desktop */}
         <div className="hidden md:block">
           <ThemeToggle />
@@ -74,9 +70,7 @@ const Header: React.FC = () => {
             >
               <DropdownMenuLabel className="font-normal p-2">
                 <div className="flex flex-col space-y-1">
-                  <p className="text-sm font-medium leading-none text-transparent bg-clip-text bg-gradient-to-r from-blue-500 to-purple-500">
-                    {user.user_metadata?.display_name || 'User'}
-                  </p>
+                  <p className="text-sm font-medium leading-none text-transparent bg-clip-text bg-gradient-to-r from-blue-500 to-purple-500">{user.user_metadata?.display_name || 'User'}</p>
                   <p className="text-xs leading-none text-muted-foreground">
                     {user.email}
                   </p>
