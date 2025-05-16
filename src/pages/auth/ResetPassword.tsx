@@ -30,7 +30,7 @@ export default function ResetPassword() {
                 if (error) throw error
 
                 if (!session) {
-                    errorToast('Invalid or expired reset link. Please request a new one.')
+                    errorToast('The password reset link has expired. Please request a new one.')
                     navigate('/auth/forgot-password')
                     return
                 }
@@ -39,7 +39,7 @@ export default function ResetPassword() {
                 setIsValid(true)
             } catch (error: any) {
                 console.error('Reset token check error:', error)
-                errorToast('Invalid or expired reset link. Please request a new one.')
+                errorToast('The password reset link has expired. Please request a new one.')
                 navigate('/auth/forgot-password')
             }
         }
