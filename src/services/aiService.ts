@@ -15,7 +15,7 @@ const openai = new OpenAI({
 interface StoryGenerationParams {
     childName: string;
     childAge: number;
-    interests: string;   // Used to shape story, not mentioned directly
+    interests: string;
     storyType: string;
     storyLength: string;
 }
@@ -36,24 +36,20 @@ export const aiService = {
     }: StoryGenerationParams): Promise<Story> {
         try {
             const storyPrompt = `
-Write a creative children's story with these details:
-- Main character's name: ${childName}
-- Age of target reader: ${childAge}
-- Story type: ${storyType}
-- Story length: ${storyLength}
-- Inspiration/theme: ${interests} 
-  (IMPORTANT: Do NOT mention the word "${interests}" directly. 
-  Instead, let it guide the setting, characters, or events.)
+Write a ${storyType} story for a child who is ${childAge} years old.
+The main character’s name is ${childName}.
+The story length should match: ${storyLength}.
+Use the theme of "${interests}" as inspiration for the setting, characters, or events 
+⚠️ Do not directly say "${interests}" in the story — let it shape the world and plot naturally.
 
 Guidelines:
-1. The story must be age-appropriate for a ${childAge}-year-old.
-2. Use the interests only as inspiration for the world, characters, or plot — never state them directly.
-3. Use simple vocabulary and short sentences.
-4. Create a clear structure: beginning, middle, and end.
-5. Make it imaginative, engaging, and magical.
-6. End with a clear **moral or lesson**.
+1. Use simple, age-appropriate language for a ${childAge}-year-old.
+2. Make ${childName} the central character of the story.
+3. Ensure a clear structure with beginning, middle, and end.
+4. Keep the story engaging, imaginative, and fun.
+5. End with a clear **moral or lesson**.
 
-Format the output like this:
+Format strictly like this:
 
 Title: [Story Title]
 Content:
