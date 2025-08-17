@@ -15,61 +15,66 @@ const openai = new OpenAI({
 interface StoryGenerationParams {
     childName: string;
     childAge: number;
-    interests: string;
+    interests: string;   // Used to shape story, not mentioned directly
     storyType: string;
     storyLength: string;
-    isAutismFriendly?: boolean;
 }
 
 interface Story {
     title: string;
     content: string;
+    moral?: string;
 }
 
 export const aiService = {
-    async generateStory({ childName, childAge, interests, storyType, storyLength, isAutismFriendly = false }: StoryGenerationParams): Promise<Story> {
+    async generateStory({
+        childName,
+        childAge,
+        interests,
+        storyType,
+        storyLength
+    }: StoryGenerationParams): Promise<Story> {
         try {
-            const storyPrompt = `Create a children's story with the following details:
-            - Child's name: ${childName}
-            - Age: ${childAge}
-            - Interests: ${interests}
-            - Story type: ${storyType}
-            - Length: ${storyLength}
-            ${isAutismFriendly ? `
-            - Make the story autism-friendly:
-              * Use clear, simple language
-              * Break complex ideas into smaller parts
-              * Include sensory details
-              * Add emotional context
-              * Make sequences clear
-              * Use repetitive patterns when appropriate
-              * Include visual cues in text (will be formatted later)` : ''}
+            const storyPrompt = `
+Write a creative children's story with these details:
+- Main character's name: ${childName}
+- Age of target reader: ${childAge}
+- Story type: ${storyType}
+- Story length: ${storyLength}
+- Inspiration/theme: ${interests} 
+  (⚠️ IMPORTANT: Do NOT mention the word "${interests}" directly. 
+  Instead, let it guide the setting, characters, or events.)
 
-            Please create a story that is:
-            1. Age-appropriate for a ${childAge}-year-old
-            2. Incorporates the child's interests naturally
-            3. Has a clear moral or learning outcome
-            4. Is engaging and imaginative
-            5. Uses simple language appropriate for the age group
-            6. Has a clear structure with beginning, middle, and end
+Guidelines:
+1. The story must be age-appropriate for a ${childAge}-year-old.
+2. Use the interests only as inspiration for the world, characters, or plot — never state them directly.
+3. Use simple vocabulary and short sentences.
+4. Create a clear structure: beginning, middle, and end.
+5. Make it imaginative, engaging, and magical.
+6. End with a clear **moral or lesson**.
 
-            Format the response as follows:
-            Title: [Story Title]
-            Content: [Story Content]`;
+Format the output like this:
+
+Title: [Story Title]
+Content:
+[Story Content, split into short paragraphs]
+Moral: [One-sentence moral lesson]`;
 
             const completion = await openai.chat.completions.create({
                 model: 'deepseek/deepseek-r1:free',
                 messages: [
                     {
                         role: 'system',
-                        content: 'You are a creative children\'s story writer who creates engaging, age-appropriate stories with positive messages.'
+                        content: "You are an expert children's story writer. You create magical, engaging, and meaningful stories for kids. Always include a moral lesson."
                     },
                     {
                         role: 'user',
                         content: storyPrompt
                     }
                 ],
-                temperature: 0.7,
+                temperature: 0.9,
+                top_p: 0.95,
+                presence_penalty: 0.6,
                 max_tokens: 2000,
             });
 
@@ -78,9 +83,10 @@ export const aiService = {
                 throw new Error('No response from AI');
             }
 
-            // Parse the response to extract title and content
+            // Parse response
             const titleMatch = response.match(/Title:\s*(.+)/);
-            const contentMatch = response.match(/Content:\s*([\s\S]+)/);
+            const contentMatch = response.match(/Content:\s*([\s\S]*?)(?=Moral:|$)/);
+            const moralMatch = response.match(/Moral:\s*(.+)/);
 
             if (!titleMatch || !contentMatch) {
                 throw new Error('Invalid response format from AI');
@@ -88,11 +94,12 @@ export const aiService = {
 
             return {
                 title: titleMatch[1].trim(),
-                content: contentMatch[1].trim()
+                content: contentMatch[1].trim(),
+                moral: moralMatch ? moralMatch[1].trim() : undefined,
             };
         } catch (error) {
             console.error('Error generating story:', error);
             throw new Error('Failed to generate story');
         }
     }
-}; 
+};
