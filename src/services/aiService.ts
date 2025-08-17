@@ -42,7 +42,7 @@ Write a creative children's story with these details:
 - Story type: ${storyType}
 - Story length: ${storyLength}
 - Inspiration/theme: ${interests} 
-  (⚠️ IMPORTANT: Do NOT mention the word "${interests}" directly. 
+  (IMPORTANT: Do NOT mention the word "${interests}" directly. 
   Instead, let it guide the setting, characters, or events.)
 
 Guidelines:
