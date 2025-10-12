@@ -40,7 +40,7 @@ Write a ${storyType} story for a child who is ${childAge} years old.
 The main character’s name is ${childName}.
 The story length should match: ${storyLength}.
 Use the theme of "${interests}" as inspiration for the setting, characters, or events 
-⚠️ Do not directly say "${interests}" in the story — let it shape the world and plot naturally.
+Do not directly say "${interests}" in the story — let it shape the world and plot naturally.
 
 Guidelines:
 1. Use simple, age-appropriate language for a ${childAge}-year-old.
